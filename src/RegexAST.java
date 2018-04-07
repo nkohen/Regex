@@ -14,6 +14,7 @@ public class RegexAST {
     /**
      * Abstract Syntax Tree Node where every node is either an operation or
      * a leaf (in which case it contains a character).
+     * null ASTNode => empty word.
      */
     private static class ASTNode {
         char operator;
@@ -41,13 +42,17 @@ public class RegexAST {
 
             return "(" + operator + " " +
                     left.toString() +
-                    ((right != null)?" " + right.toString():"")
+                    ((right != null)?" " + right.toString():((operator == '|')?" emptyword":""))
                     + ")";
         }
     }
 
     private ASTNode root;
     private int index = 0;
+
+    public boolean isEmptyWord() {
+        return root == null;
+    }
 
     public boolean isOperator() {
         return root.isOperator;
@@ -99,7 +104,7 @@ public class RegexAST {
     }
 
     private boolean isQuantifier(char c) {
-        return c == '*' || c == '+' || c == '{';
+        return c == '*' || c == '+' || c == '{' || c == '?';
     }
 
     /* Want to add:
@@ -107,12 +112,16 @@ public class RegexAST {
      * {n} : previous is matched exactly n times
      * {min,max} : previous is matched between min and max times inclusive
      *
-     * In the future, it will be more efficient to just add NFA support for
+     * In the future, it may be more efficient to just add NFA support for
      * new quantifiers instead of compiling everything to be in terms of *,^, and |
      */
     private ASTNode quantify(String regex, ASTNode current) {
         ASTNode result = null;
         switch (regex.charAt(index)) {
+            case '?':
+                result = new ASTNode('|', current, null);
+                index++;
+                break;
             case '*':
                 result = new ASTNode('*', current, null);
                 index++;
@@ -130,11 +139,30 @@ public class RegexAST {
                     index++;
                     currentChar = regex.charAt(index);
                 }
+                boolean minmax = regex.charAt(index) == ',';
                 index++;
                 int num = Integer.parseInt(strnum);
                 result = current;
                 for (int i = 1; i < num; i++) {
                     result = new ASTNode('^', result, current);
+                }
+                if (minmax) {
+                    strnum = "";
+                    currentChar = regex.charAt(index);
+                    while (Character.isDigit(currentChar)) {
+                        strnum += currentChar;
+                        index++;
+                        currentChar = regex.charAt(index);
+                    }
+                    index++;
+                    int max = Integer.parseInt(strnum);
+                    if (num == max)
+                        break;
+                    ASTNode result2 = new ASTNode('|', current, null);
+                    for (int i = 1; i < max - num; i++) {
+                        result2 = new ASTNode('^', result2, new ASTNode('|', current, null));
+                    }
+                    result = new ASTNode('^', result, result2);
                 }
                 break;
         }
@@ -162,7 +190,7 @@ public class RegexAST {
                 // Move past the ')'
                 index++;
 
-                if (index < regex.length() && isQuantifier(regex.charAt(index))) {
+                while (index < regex.length() && isQuantifier(regex.charAt(index))) {
                     // If the next char is a quantifier, add that quantifier to the top of the AST
                     result = quantify(regex, result);
                 }
@@ -192,15 +220,13 @@ public class RegexAST {
                 // Move forward
                 index++;
 
-                if (isQuantifier(regex.charAt(index))) {
+                while (isQuantifier(regex.charAt(index))) {
                     // If the character is followed immediately by a quantifier, add that to the ASTNode
                     result = quantify(regex, result);
                 }
 
                 // If there is a previous regex concatenate with it
-                if (current != null &&
-                        (!current.isOperator ||
-                                current.operator == '^' || isQuantifier(current.operator)))
+                if (current != null)
                     result = new ASTNode('^', current, result);
 
                 // If the next character is not ')', match more
@@ -211,6 +237,9 @@ public class RegexAST {
     }
 
     public String toString() {
+        if (root == null)
+            return "emptyword";
+
         return root.toString();
     }
 
@@ -224,5 +253,9 @@ public class RegexAST {
         System.out.println(new RegexAST("(01)|(001)|(010)"));
         System.out.println(new RegexAST("(a|b)+{3}"));
         System.out.println(new RegexAST("(a|b)++"));
+        System.out.println(new RegexAST(""));
+        System.out.println(new RegexAST("a?b+"));
+        System.out.println(new RegexAST("a{2,3}b"));
+        System.out.println(new RegexAST("a?b{3}*"));
     }
 }

@@ -22,6 +22,11 @@ public class NFA { // Need to implement reductions
 
     public static NFA makeNFA(RegexAST regex) {
         NFA nfa = new NFA();
+        if (regex.isEmptyWord()) {
+            nfa.startState = new Node();
+            nfa.acceptStates.add(nfa.startState);
+            return nfa;
+        }
 
         if (!regex.isOperator()) {
             Node start = new Node();
