@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.List;
-
-public class RegexAST {
+public class RegexAST { //TODO: add escape for special characters (e.g. \|, \*, etc.)
     private static char[] operators = {'|', '*', '^', '+'};
     private static boolean isCharOperator(char c) {
         for (char op : operators) {
