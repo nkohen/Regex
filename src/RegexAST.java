@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RegexAST {
-    private static char[] operators = {'|', '*', '^'};
+    private static char[] operators = {'|', '*', '^', '+'};
     private static boolean isCharOperator(char c) {
         for (char op : operators) {
             if (op == c)
@@ -121,7 +121,21 @@ public class RegexAST {
                 result = new ASTNode('^', current, new ASTNode('*', current, null));
                 index++;
                 break;
-            case '{': //ADD HERE
+            case '{':
+                index++;
+                char currentChar = regex.charAt(index);
+                String strnum = "";
+                while (Character.isDigit(currentChar)) {
+                    strnum += currentChar;
+                    index++;
+                    currentChar = regex.charAt(index);
+                }
+                index++;
+                int num = Integer.parseInt(strnum);
+                result = current;
+                for (int i = 1; i < num; i++) {
+                    result = new ASTNode('^', result, current);
+                }
                 break;
         }
         return result;
@@ -167,6 +181,11 @@ public class RegexAST {
                 result = new ASTNode('|', current, matchRegex(regex, null));
                 break;
             default:
+                if (isQuantifier(regex.charAt(index))) {
+                    result = quantify(regex, current);
+                    break;
+                }
+
                 // Create a node for the character
                 result = new ASTNode(regex.charAt(index), null, null);
 
@@ -203,6 +222,7 @@ public class RegexAST {
         System.out.println(new RegexAST("ab*"));
         System.out.println(new RegexAST("01|001|010"));
         System.out.println(new RegexAST("(01)|(001)|(010)"));
-        System.out.println(new RegexAST("(a|b)+"));
+        System.out.println(new RegexAST("(a|b)+{3}"));
+        System.out.println(new RegexAST("(a|b)++"));
     }
 }
