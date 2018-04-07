@@ -158,7 +158,7 @@ public class DFA {
 
     public static void main(String[] args) { // Needs some serious debugging
 
-        DFA dfa = new DFA("(a|b)*ab*");
+        DFA dfa = new DFA("(a|b)+ab*");
         System.out.println(dfa);
 
         dfa = new DFA("((1|0(00)*01)((11|10(00)*01))*|(0(00)*1|(1|0(00)*01)((11|10(00)*01))*(0|10(00)*1))((1(00)*1|(0|1(00)*01)((11|10(00)*01))*(0|10(00)*1)))*(0|1(00)*01)((11|10(00)*01))*)");

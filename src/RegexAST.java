@@ -73,14 +73,6 @@ public class RegexAST {
         root = node;
     }
 
-    /* Want to add:
-     * ? : zero or one -- Need support for empty word
-     * {n} : previous is matched exactly n times
-     * {min,max} : previous is matched between min and max times inclusive
-     *
-     * Should probably put this stuff inside the actual matching
-     * so that it has access to the previous matched AST
-     */
     private List<Character> compile(String genRegex) {
         List<Character> simpleRegex = new ArrayList<>();
         for (int i = 0; i < genRegex.length(); i++) {
@@ -110,14 +102,24 @@ public class RegexAST {
         return c == '*' || c == '+' || c == '{';
     }
 
+    /* Want to add:
+     * ? : zero or one -- Need support for empty word
+     * {n} : previous is matched exactly n times
+     * {min,max} : previous is matched between min and max times inclusive
+     *
+     * In the future, it will be more efficient to just add NFA support for
+     * new quantifiers instead of compiling everything to be in terms of *,^, and |
+     */
     private ASTNode quantify(String regex, ASTNode current) {
         ASTNode result = null;
         switch (regex.charAt(index)) {
             case '*':
                 result = new ASTNode('*', current, null);
+                index++;
                 break;
             case '+':
                 result = new ASTNode('^', current, new ASTNode('*', current, null));
+                index++;
                 break;
             case '{': //ADD HERE
                 break;
@@ -146,12 +148,9 @@ public class RegexAST {
                 // Move past the ')'
                 index++;
 
-                if (index < regex.length() && regex.charAt(index) == '*') {
-                    // If the next char is '*', add a * to the top of the AST
-                    result = new ASTNode('*', result, null);
-
-                    // and move past the '*'
-                    index++;
+                if (index < regex.length() && isQuantifier(regex.charAt(index))) {
+                    // If the next char is a quantifier, add that quantifier to the top of the AST
+                    result = quantify(regex, result);
                 }
 
                 // If this is not the outer-most (), concatenate the matched regex
@@ -167,13 +166,6 @@ public class RegexAST {
                 // Make an OR with the previous regex, and the next one
                 result = new ASTNode('|', current, matchRegex(regex, null));
                 break;
-            case '*':
-                // Move forward
-                index++;
-
-                // Make a * with the previous regex
-                result = new ASTNode('*', current, null);
-                break;
             default:
                 // Create a node for the character
                 result = new ASTNode(regex.charAt(index), null, null);
@@ -181,18 +173,15 @@ public class RegexAST {
                 // Move forward
                 index++;
 
-                if (regex.charAt(index) == '*') {
-                    // If the character is followed immediately by a *, add that to the ASTNode
-                    result = new ASTNode('*', result, null);
-
-                    // And move past the *
-                    index++;
+                if (isQuantifier(regex.charAt(index))) {
+                    // If the character is followed immediately by a quantifier, add that to the ASTNode
+                    result = quantify(regex, result);
                 }
 
                 // If there is a previous regex concatenate with it
                 if (current != null &&
                         (!current.isOperator ||
-                                current.operator == '^' || current.operator == '*'))
+                                current.operator == '^' || isQuantifier(current.operator)))
                     result = new ASTNode('^', current, result);
 
                 // If the next character is not ')', match more
@@ -214,7 +203,6 @@ public class RegexAST {
         System.out.println(new RegexAST("ab*"));
         System.out.println(new RegexAST("01|001|010"));
         System.out.println(new RegexAST("(01)|(001)|(010)"));
-        // Throws an error because it compiles to (a))*
-        System.out.println(new RegexAST("(a)+"));
+        System.out.println(new RegexAST("(a|b)+"));
     }
 }
