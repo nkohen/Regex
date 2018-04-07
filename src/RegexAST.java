@@ -78,22 +78,6 @@ public class RegexAST {
         root = node;
     }
 
-    private List<Character> compile(String genRegex) {
-        List<Character> simpleRegex = new ArrayList<>();
-        for (int i = 0; i < genRegex.length(); i++) {
-            char c = genRegex.charAt(i);
-            switch (c) {
-                case '+':
-                    simpleRegex.add(genRegex.charAt(i-1)); // This only works for single characters
-                    simpleRegex.add('*');
-                    break;
-                default:
-                    simpleRegex.add(c);
-            }
-        }
-        return simpleRegex;
-    }
-
     public RegexAST(String regex) {
         ASTNode current = null;
         regex = '(' + regex + ')';
