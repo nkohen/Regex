@@ -17,7 +17,7 @@ public class RegexAST {
         char operator;
         char value;
         boolean isOperator;
-        ASTNode left;
+        ASTNode left; // Not used by non-operators
         ASTNode right; // Not used by unary operators
 
         ASTNode(char c, ASTNode left, ASTNode right) {
@@ -88,31 +88,39 @@ public class RegexAST {
         return c == '*' || c == '+' || c == '{' || c == '?';
     }
 
-    /* Want to add:
-     * ? : zero or one -- Need support for empty word
-     * {n} : previous is matched exactly n times
-     * {min,max} : previous is matched between min and max times inclusive
-     *
-     * In the future, it may be more efficient to just add NFA support for
-     * new quantifiers instead of compiling everything to be in terms of *,^, and |
+    /*
+     * In the future, it may be more efficient to just add NFA support for certain
+     * quantifiers instead of compiling everything to be in terms of *,^, and |
      */
     private ASTNode quantify(String regex, ASTNode current) {
         ASTNode result = null;
         switch (regex.charAt(index)) {
             case '?':
+                // current OR emptyword
                 result = new ASTNode('|', current, null);
+
+                // Move forward
                 index++;
                 break;
             case '*':
+                // Quantify with *
                 result = new ASTNode('*', current, null);
+
+                // Move forward
                 index++;
                 break;
             case '+':
+                // (^ current (* current))
                 result = new ASTNode('^', current, new ASTNode('*', current, null));
+
+                // Move forward
                 index++;
                 break;
             case '{':
+                // Move past {
                 index++;
+
+                // Parse in next int into strnum
                 char currentChar = regex.charAt(index);
                 StringBuilder strnum = new StringBuilder();
                 while (Character.isDigit(currentChar)) {
@@ -120,14 +128,22 @@ public class RegexAST {
                     index++;
                     currentChar = regex.charAt(index);
                 }
+
+                // If next char is a , then we are in the {min,max} case, else the {num} case
                 boolean minmax = regex.charAt(index) == ',';
+
+                // Move past , or }
                 index++;
+
+                // Make result num consecutive currents concatenated
                 int num = Integer.parseInt(strnum.toString());
                 result = current;
                 for (int i = 1; i < num; i++) {
                     result = new ASTNode('^', result, current);
                 }
+
                 if (minmax) {
+                    // If minmax, then parse in max
                     strnum = new StringBuilder();
                     currentChar = regex.charAt(index);
                     while (Character.isDigit(currentChar)) {
@@ -135,7 +151,11 @@ public class RegexAST {
                         index++;
                         currentChar = regex.charAt(index);
                     }
+
+                    // Move past }
                     index++;
+
+                    // Add (max-min) concatenations of (current?)
                     int max = Integer.parseInt(strnum.toString());
                     if (num == max)
                         break;
@@ -156,6 +176,7 @@ public class RegexAST {
      * @param current The ASTNode for the previously matched regex.
      * @return An ASTNode for a sub-regex of regex.
      */
+    // TODO: What if \0 is the character?
     private ASTNode matchRegex(String regex, ASTNode current) {
         ASTNode result;
         switch (regex.charAt(index)) {
@@ -190,8 +211,10 @@ public class RegexAST {
                 result = new ASTNode('|', current, matchRegex(regex, null));
                 break;
             case '\\':
+                // Move past escape, and drop into default and treat as non-operation character
                 index++;
             default:
+                // If character is unescaped quantifier, quantify current and break
                 if (isQuantifier(regex.charAt(index)) && regex.charAt(index-1) != '\\') {
                     result = quantify(regex, current);
                     break;
