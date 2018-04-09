@@ -1,4 +1,4 @@
-public class RegexAST { //TODO: add escape for special characters (e.g. \|, \*, etc.)
+public class RegexAST {
     private static char[] operators = {'|', '*', '^', '+'};
     private static boolean isCharOperator(char c) {
         for (char op : operators) {
@@ -21,7 +21,7 @@ public class RegexAST { //TODO: add escape for special characters (e.g. \|, \*, 
         ASTNode right; // Not used by unary operators
 
         ASTNode(char c, ASTNode left, ASTNode right) {
-            if (isCharOperator(c)) {
+            if (isCharOperator(c) && left != null) {
                 isOperator = true;
                 operator = c;
             } else {
@@ -33,7 +33,7 @@ public class RegexAST { //TODO: add escape for special characters (e.g. \|, \*, 
         }
 
         public String toString() {
-            if (!isOperator) {
+            if (!isOperator || left == null) {
                 return Character.toString(value);
             }
 
@@ -189,8 +189,10 @@ public class RegexAST { //TODO: add escape for special characters (e.g. \|, \*, 
                 // Make an OR with the previous regex, and the next one
                 result = new ASTNode('|', current, matchRegex(regex, null));
                 break;
+            case '\\':
+                index++;
             default:
-                if (isQuantifier(regex.charAt(index))) {
+                if (isQuantifier(regex.charAt(index)) && regex.charAt(index-1) != '\\') {
                     result = quantify(regex, current);
                     break;
                 }
@@ -238,5 +240,6 @@ public class RegexAST { //TODO: add escape for special characters (e.g. \|, \*, 
         System.out.println(new RegexAST("a?b+"));
         System.out.println(new RegexAST("a{2,3}b"));
         System.out.println(new RegexAST("a?b{3}*"));
+        System.out.println(new RegexAST("\\**\\\\\\^\\|\\+\\?"));
     }
 }
