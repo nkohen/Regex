@@ -176,7 +176,6 @@ public class RegexAST {
      * @param current The ASTNode for the previously matched regex.
      * @return An ASTNode for a sub-regex of regex.
      */
-    // TODO: What if \0 is the character?
     private ASTNode matchRegex(String regex, ASTNode current) {
         ASTNode result;
         switch (regex.charAt(index)) {
@@ -210,6 +209,9 @@ public class RegexAST {
                 // Make an OR with the previous regex, and the next one
                 result = new ASTNode('|', current, matchRegex(regex, null));
                 break;
+            case '\0':
+                // NFAs currently use '\0' as the keys for empty transitions
+                throw new UnsupportedOperationException("\\0 is not a supported character");
             case '\\':
                 // Move past escape, and drop into default and treat as non-operation character
                 index++;
