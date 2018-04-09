@@ -6,7 +6,7 @@ public class DFA {
         Map<Character, Node> neighbors = new HashMap<>();
         Set<NFA.Node> set;
 
-        public Node(Set<NFA.Node> set) {
+        Node(Set<NFA.Node> set) {
             this.set = set;
         }
     }
@@ -132,7 +132,7 @@ public class DFA {
     }
 
     public String toString() {
-        String out = "ahead [shape = plaintext, label = \"\"];\nahead-> a0;\n";
+        StringBuilder out = new StringBuilder("ahead [shape = plaintext, label = \"\"];\nahead-> a0;\n");
         int nextName = 0;
         Map<Node, Integer> name = new HashMap<>();
         Queue<Node> toProcess = new LinkedList<>();
@@ -146,14 +146,17 @@ public class DFA {
                     name.put(neighbor, nextName++);
                     toProcess.add(neighbor);
                 }
-                out += "a" + name.get(currentNode) + " -> a" + name.get(neighbor) + " [label = \"" + c + "\"];\n";
+                // out += "a" + name.get(currentNode) + " -> a" + name.get(neighbor) + " [label = \"" + c + "\"];\n";
+                out.append("a").append(name.get(currentNode))
+                        .append(" -> a").append(name.get(neighbor)).append(" [label = \"").append(c).append("\"];\n");
             }
         }
 
         for (Node node : acceptStates) {
-            out += "a" + name.get(node) + " [shape = doublecircle];\n";
+            // out += "a" + name.get(node) + " [shape = doublecircle];\n";
+            out.append("a").append(name.get(node)).append(" [shape = doublecircle];\n");
         }
-        return out;
+        return out.toString();
     }
 
     public static void main(String[] args) { // Needs some serious debugging

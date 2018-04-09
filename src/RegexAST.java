@@ -114,29 +114,29 @@ public class RegexAST {
             case '{':
                 index++;
                 char currentChar = regex.charAt(index);
-                String strnum = "";
+                StringBuilder strnum = new StringBuilder();
                 while (Character.isDigit(currentChar)) {
-                    strnum += currentChar;
+                    strnum.append(currentChar);
                     index++;
                     currentChar = regex.charAt(index);
                 }
                 boolean minmax = regex.charAt(index) == ',';
                 index++;
-                int num = Integer.parseInt(strnum);
+                int num = Integer.parseInt(strnum.toString());
                 result = current;
                 for (int i = 1; i < num; i++) {
                     result = new ASTNode('^', result, current);
                 }
                 if (minmax) {
-                    strnum = "";
+                    strnum = new StringBuilder();
                     currentChar = regex.charAt(index);
                     while (Character.isDigit(currentChar)) {
-                        strnum += currentChar;
+                        strnum.append(currentChar);
                         index++;
                         currentChar = regex.charAt(index);
                     }
                     index++;
-                    int max = Integer.parseInt(strnum);
+                    int max = Integer.parseInt(strnum.toString());
                     if (num == max)
                         break;
                     ASTNode result2 = new ASTNode('|', current, null);
