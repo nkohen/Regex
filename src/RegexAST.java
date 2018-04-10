@@ -42,6 +42,21 @@ public class RegexAST {
                     ((right != null)?" " + right.toString():((operator == '|')?" emptyword":""))
                     + ")";
         }
+
+        public boolean equals(ASTNode that) {
+            if (that == null || this.operator != that.operator || this.value != that.value || this.isOperator != that.isOperator)
+                return false;
+
+            if (this.left == null)
+                return that.left == null;
+            else {
+                if (!this.left.equals(that.left))
+                    return false;
+                if (this.right == null)
+                    return that.right == null;
+                return this.right.equals(that.right);
+            }
+        }
     }
 
     private ASTNode root;
@@ -52,14 +67,20 @@ public class RegexAST {
     }
 
     public boolean isOperator() {
-        return root.isOperator;
+        return root != null && root.isOperator;
     }
 
     public char value() {
+        if (root == null)
+            return '\0';
+
         return root.value;
     }
 
     public char operator() {
+        if (root == null)
+            return '\0';
+
         return root.operator;
     }
 
@@ -69,6 +90,16 @@ public class RegexAST {
 
     public RegexAST right() {
         return new RegexAST(root.right);
+    }
+
+    public boolean equals(Object that) {
+        if (!(that instanceof RegexAST))
+            return false;
+
+        if (root == null)
+            return ((RegexAST)that).root == null;
+
+        return this.root.equals(((RegexAST)that).root);
     }
 
     private RegexAST(ASTNode node) {
@@ -137,7 +168,10 @@ public class RegexAST {
 
                 // Make result num consecutive currents concatenated
                 int num = Integer.parseInt(strnum.toString());
-                result = current;
+                if (num <= 0)
+                    result = null;
+                else
+                    result = current;
                 for (int i = 1; i < num; i++) {
                     result = new ASTNode('^', result, current);
                 }
@@ -211,6 +245,7 @@ public class RegexAST {
                 break;
             case '\0':
                 // NFAs currently use '\0' as the keys for empty transitions
+                // TODO: Make this an emptyword
                 throw new UnsupportedOperationException("\\0 is not a supported character");
             case '\\':
                 // Move past escape, and drop into default and treat as non-operation character
