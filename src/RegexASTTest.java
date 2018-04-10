@@ -24,6 +24,14 @@ class RegexASTTest {
     }
 
     @Test
+    public void emptyWordTest() {
+        assertEquals(EMPTYWORD, makeAST("\0"));
+        assertEquals(SINGLE_CHAR, makeAST("a\0"));
+        assertEquals(SINGLE_CHAR, makeAST("\0a"));
+        assertEquals(EMPTYWORD, makeAST("\0*"));
+    }
+
+    @Test
     public void isOperatorTest() {
         assertFalse(EMPTYWORD.isOperator());
         assertFalse(SINGLE_CHAR.isOperator());
@@ -59,30 +67,36 @@ class RegexASTTest {
         assertEquals("(| a b)", OR.toString());
     }
 
-    /* This requires '\0' support
     @Test
     public void optionalTest() {
         assertTrue(makeAST("a?").equals(makeAST("a|\0")) ||
                 makeAST("a?").equals(makeAST("\0|a")));
+
+        assertEquals(EMPTYWORD, makeAST("\0?"));
     }
-    */
 
     @Test
     public void plusTest() {
         assertTrue(makeAST("a+").equals(makeAST("aa*")) ||
                 makeAST("a+").equals(makeAST("a*a")));
+
+        assertEquals(EMPTYWORD, makeAST("\0+"));
     }
 
     @Test
     public void numQuantifyTest() {
         assertEquals(makeAST("aaa"), makeAST("a{3}"));
         assertEquals(EMPTYWORD, makeAST("a{0}"));
+
+        assertEquals(EMPTYWORD, makeAST("\0{3}"));
     }
 
     @Test
     public void minMaxQuantifyTest() {
         assertEquals(makeAST("aaa(a?){2}"), makeAST("a{3,5}"));
         assertEquals(makeAST("a{3}"), makeAST("a{3,3}"));
+
+        assertEquals(EMPTYWORD, makeAST("\0{3,5}"));
     }
 
     private void escapeAndTest(char specialCharacter) {

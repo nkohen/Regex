@@ -43,7 +43,7 @@ public class RegexAST {
                     + ")";
         }
 
-        public boolean equals(ASTNode that) {
+        boolean equals(ASTNode that) {
             if (that == null || this.operator != that.operator || this.value != that.value || this.isOperator != that.isOperator)
                 return false;
 
@@ -201,7 +201,12 @@ public class RegexAST {
                 }
                 break;
         }
-        return result;
+
+        // Any quantification of emptyword is emptyword
+        if (current == null)
+            return null;
+        else
+            return result;
     }
 
     /**
@@ -243,10 +248,6 @@ public class RegexAST {
                 // Make an OR with the previous regex, and the next one
                 result = new ASTNode('|', current, matchRegex(regex, null));
                 break;
-            case '\0':
-                // NFAs currently use '\0' as the keys for empty transitions
-                // TODO: Make this an emptyword
-                throw new UnsupportedOperationException("\\0 is not a supported character");
             case '\\':
                 // Move past escape, and drop into default and treat as non-operation character
                 index++;
@@ -258,7 +259,10 @@ public class RegexAST {
                 }
 
                 // Create a node for the character
-                result = new ASTNode(regex.charAt(index), null, null);
+                if (regex.charAt(index) == '\0')
+                    result = null;
+                else
+                    result = new ASTNode(regex.charAt(index), null, null);
 
                 // Move forward
                 index++;
@@ -268,9 +272,14 @@ public class RegexAST {
                     result = quantify(regex, result);
                 }
 
-                // If there is a previous regex concatenate with it
-                if (current != null)
-                    result = new ASTNode('^', current, result);
+                // If there is a previous regex (that isn't emptyword) concatenate with it
+                if (current != null) {
+                    // Concatenating emptyword is the same as just returning the other
+                    if (result == null)
+                        result = current;
+                    else
+                        result = new ASTNode('^', current, result);
+                }
 
                 // If the next character is not ')', match more
                 if (regex.charAt(index) != ')')
