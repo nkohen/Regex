@@ -75,7 +75,7 @@ public class NFA {
 
     // Output the graph in GraphViz
     public String toString() {
-        StringBuilder out = new StringBuilder("ahead [shape = plaintext, label = \"\"];\nahead-> a0;\n");
+        StringBuilder out = new StringBuilder("digraph G {\nahead [shape = plaintext, label = \"\"];\nahead-> a0;\n");
         int nextName = 0;
         Map<Node, Integer> name = new HashMap<>();
         java.util.Queue<Node> toProcess = new LinkedList<>();
@@ -101,6 +101,8 @@ public class NFA {
             //out += "a" + name.get(node) + " [shape = doublecircle];\n";
             out.append("a").append(name.get(node)).append(" [shape = doublecircle];\n");
         }
+
+        out.append("}\n");
 
         return out.toString();
     }

@@ -116,7 +116,7 @@ public class DFA {
             membership.put(notFinalState, notFinalStates);
         }
 
-        List<Set<Node>> partition = new ArrayList<>();
+        List<Set<Node>> partition = new LinkedList<>();
         partition.add(notFinalStates);
         partition.add(finalStates);
 
@@ -221,16 +221,18 @@ public class DFA {
 
         // Look for a Character on which a Node in group disagrees with first
         for (Node node : group) {
-            // If node has no transitions while first did, choose any character for disagree
-            if (node.neighbors.keySet().isEmpty() && !validator.keySet().isEmpty()) {
-                disagree = validator.keySet().iterator().next();
-                break;
-            }
-
-            // Otherwise, compare node's transitions to first's
+            // Compare node's transitions to first's
             for (Character c : node.neighbors.keySet()) {
                 if (!validator.containsKey(c) ||
                         membership.get(node.neighbors.get(c)) != validator.get(c)) {
+                    disagree = c;
+                    break;
+                }
+            }
+
+            // And check that node is not missing transitions
+            for (Character c : validator.keySet()) {
+                if (!node.neighbors.keySet().contains(c)) {
                     disagree = c;
                     break;
                 }
@@ -330,7 +332,7 @@ public class DFA {
 
     // Output the graph in GraphViz
     public String toString() {
-        StringBuilder out = new StringBuilder("ahead [shape = plaintext, label = \"\"];\nahead-> a0;\n");
+        StringBuilder out = new StringBuilder("digraph G {\nahead [shape = plaintext, label = \"\"];\nahead-> a0;\n");
         int nextName = 0;
         Map<Node, Integer> name = new HashMap<>();
         Queue<Node> toProcess = new LinkedList<>();
@@ -354,6 +356,9 @@ public class DFA {
             // out += "a" + name.get(node) + " [shape = doublecircle];\n";
             out.append("a").append(name.get(node)).append(" [shape = doublecircle];\n");
         }
+
+        out.append("}\n");
+
         return out.toString();
     }
 
