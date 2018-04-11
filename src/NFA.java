@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class NFA { // TODO: implement reductions
+public class NFA {
     static class Node {
         // Transitions where '\0' is the empty transition
         Map<Character, List<Node>> neighbors = new HashMap<>();

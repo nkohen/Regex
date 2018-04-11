@@ -119,10 +119,6 @@ public class RegexAST {
         return c == '*' || c == '+' || c == '{' || c == '?';
     }
 
-    /*
-     * In the future, it may be more efficient to just add NFA support for certain
-     * quantifiers instead of compiling everything to be in terms of *,^, and |
-     */
     private ASTNode quantify(String regex, ASTNode current) {
         ASTNode result = null;
         switch (regex.charAt(index)) {
