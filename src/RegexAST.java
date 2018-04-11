@@ -294,21 +294,4 @@ public class RegexAST {
 
         return root.toString();
     }
-
-    public static void main(String[] args) {
-        System.out.println(new RegexAST("ab|a|b"));
-        System.out.println(new RegexAST("a*b|a"));
-        System.out.println(new RegexAST("c|(a|b)*"));
-        System.out.println(new RegexAST("(a|b)*ab*"));
-        System.out.println(new RegexAST("ab*"));
-        System.out.println(new RegexAST("01|001|010"));
-        System.out.println(new RegexAST("(01)|(001)|(010)"));
-        System.out.println(new RegexAST("(a|b)+{3}"));
-        System.out.println(new RegexAST("(a|b)++"));
-        System.out.println(new RegexAST(""));
-        System.out.println(new RegexAST("a?b+"));
-        System.out.println(new RegexAST("a{2,3}b"));
-        System.out.println(new RegexAST("a?b{3}*"));
-        System.out.println(new RegexAST("\\**\\\\\\^\\|\\+\\?"));
-    }
 }

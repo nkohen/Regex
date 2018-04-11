@@ -74,7 +74,6 @@ public class NFA { // TODO: implement reductions
     }
 
     // Output the graph in GraphViz
-    // TODO: replace String concatenation in loop with StringBuilder appends
     public String toString() {
         StringBuilder out = new StringBuilder("ahead [shape = plaintext, label = \"\"];\nahead-> a0;\n");
         int nextName = 0;

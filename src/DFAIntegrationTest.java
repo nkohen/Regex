@@ -83,15 +83,17 @@ class DFAIntegrationTest {
     }
 
     @Test
-    public void unsupportedTest() {
-        Executable constructDFA = () -> new DFA("text\0text");
-        assertThrows(UnsupportedOperationException.class, constructDFA);
-    }
-
-    @Test
     public void emptyWordTest() {
         DFA dfa = new DFA("");
         assertTrue(dfa.match(""));
         assertFalse(dfa.match("a"));
+
+        dfa = new DFA("\0*");
+        assertTrue(dfa.match(""));
+        assertFalse(dfa.match("a"));
+
+        dfa = new DFA("text\0text");
+        assertTrue(dfa.match("texttext"));
+        assertFalse(dfa.match("text\0text"));
     }
 }
