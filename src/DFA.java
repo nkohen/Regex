@@ -2,6 +2,9 @@ import java.util.*;
 
 public class DFA {
     class Node {
+        // If Node is an acceptState, these are what it matches (for use in Lexer)
+        Set<String> regexMatch;
+
         // For use in traversals
         boolean marked = false;
 
@@ -21,14 +24,22 @@ public class DFA {
         Node() {}
     }
 
+    public static String toName(Set<String> names) {
+        StringBuilder name = new StringBuilder();
+        names.forEach(n -> name.append(n).append(" | "));
+        if (name.length() > 0)
+            name.delete(name.length()-3, name.length());
+        return name.toString();
+    }
+
     Node startState;
     List<Node> acceptStates = new ArrayList<>();
 
-    public DFA(String regex) {
-        initFrom(NFA.makeNFA(regex));
+    public DFA(String[] names, String[] regex) {
+        initFrom(NFA.makeNFA(names, regex));
     }
 
-    public DFA(RegexAST regex) {
+    public DFA(String regex) {
         initFrom(NFA.makeNFA(regex));
     }
 
@@ -84,8 +95,10 @@ public class DFA {
                     allNodes.add(neighbor);
 
                     // If neighbor.set (= set) contains an accept state of nfa, then add neighbor to acceptStates
-                    if (containsFinalState(nfa.acceptStates, set))
+                    if (containsFinalState(nfa.acceptStates, set)) {
                         acceptStates.add(neighbor);
+                        initRegexMatch(nfa.acceptStates, neighbor);
+                    }
                 }
             }
 
@@ -98,6 +111,20 @@ public class DFA {
 
         // Make into a minimal DFA
         minimize();
+    }
+
+    private void initRegexMatch(List<NFA.Node> finalStates, Node node) {
+        node.regexMatch = new HashSet<>();
+
+        for (NFA.Node n : node.set) {
+            if (finalStates.contains(n)) {
+                if (n.regexMatch == null) {
+                    node.regexMatch = null;
+                    break;
+                }
+                node.regexMatch.add(n.regexMatch);
+            }
+        }
     }
 
     // Turns the current DFA into an equivalent minimal DFA (with fewest states)
@@ -181,8 +208,15 @@ public class DFA {
             newNode.neighborSet = true;
 
             // If the representative is in acceptStates, then add newNode to newAcceptStates
-            if (acceptStates.contains(representative))
+            if (acceptStates.contains(representative)) {
                 newAcceptStates.add(newNode);
+                if (representative.regexMatch != null) {
+                    newNode.regexMatch = new HashSet<>();
+                    for (Node node : subset) {
+                        newNode.regexMatch.addAll(node.regexMatch);
+                    }
+                }
+            }
         }
 
         // The new startState will be the Node corresponding to the subset containing the old startState
@@ -354,7 +388,10 @@ public class DFA {
 
         for (Node node : acceptStates) {
             // out += "a" + name.get(node) + " [shape = doublecircle];\n";
-            out.append("a").append(name.get(node)).append(" [shape = doublecircle];\n");
+            out.append("a").append(name.get(node)).append(" [shape = doublecircle");
+            if (node.regexMatch != null && !node.regexMatch.isEmpty())
+                out.append(", label = \"").append(toName(node.regexMatch)).append("\"");
+            out.append("];\n");
         }
 
         out.append("}\n");

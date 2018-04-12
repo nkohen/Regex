@@ -1,7 +1,12 @@
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class NFA {
     static class Node {
+        // If Node is an acceptState, this is what it matches (for use in Lexer)
+        String regexMatch;
+
         // Transitions where '\0' is the empty transition
         Map<Character, List<Node>> neighbors = new HashMap<>();
 
@@ -17,6 +22,33 @@ public class NFA {
 
     Node startState = null;
     List<Node> acceptStates = new ArrayList<>();
+
+    public static NFA makeNFA(String[] names, String[] regex) {
+        List<RegexAST> trees = Stream.of(regex).map(RegexAST::new).collect(Collectors.toList());
+        RegexAST[] treesArray = new RegexAST[trees.size()];
+        return makeNFA(names, trees.toArray(treesArray));
+    }
+
+    public static NFA makeNFA(String[] names, RegexAST[] regex) {
+        List<NFA> nfas = Stream.of(regex).map(NFA::makeNFA).collect(Collectors.toList());
+        for (int i = 0; i < names.length; i++) {
+            final int index = i;
+            nfas.get(i).acceptStates.forEach(node -> node.regexMatch = names[index]);
+        }
+
+        NFA result = nfas.get(0);
+        for (int i = 1; i < nfas.size(); i++) {
+            NFA newResult = new NFA();
+            newResult.startState = new Node();
+            newResult.acceptStates = result.acceptStates;
+            newResult.acceptStates.addAll(nfas.get(i).acceptStates);
+            newResult.startState.put('\0', result.startState);
+            newResult.startState.put('\0', nfas.get(i).startState);
+            result = newResult;
+        }
+
+        return result;
+    }
 
     public static NFA makeNFA(String regex) {
         return makeNFA(new RegexAST(regex));
@@ -99,7 +131,10 @@ public class NFA {
 
         for (Node node : acceptStates) {
             //out += "a" + name.get(node) + " [shape = doublecircle];\n";
-            out.append("a").append(name.get(node)).append(" [shape = doublecircle];\n");
+            out.append("a").append(name.get(node)).append(" [shape = doublecircle");
+            if (node.regexMatch != null && !node.regexMatch.isEmpty())
+                out.append(", label = \"").append(node.regexMatch).append("\"");
+            out.append("];\n");
         }
 
         out.append("}\n");

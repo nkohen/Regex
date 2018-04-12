@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.stream.Stream;
 
 // TODO: Add priorities to the given REGEX's and their corresponding accept states
@@ -15,28 +16,21 @@ public class Lexer extends DFA {
     public static final String OPTIONAL_WHITESPACE = SINGLE_WHITESPACE + "*";
     public static final String WHITESPACE = SINGLE_WHITESPACE + "+";
 
-    public Lexer(String... tokenRegex) {
-        super(combineTokens(tokenRegex));
-        this.omitter = new DFA("");
+    public Lexer(String[] names, String[] tokenRegex) {
+        super(names, tokenRegex);
+        this.omitNames = new ArrayList<>();
     }
 
-    public Lexer(String[] omit, String... tokenRegex) {
-        super(combineTokens(tokenRegex));
-        this.omitter = new DFA(combineTokens(omit));
-    }
-
-    private static String combineTokens(String... tokenRegex) {
-        StringBuilder regex = new StringBuilder("(" + tokenRegex[0] + ")");
-        for (String token : tokenRegex) {
-            regex.append("|(").append(token).append(")");
-        }
-        return regex.toString();
+    public Lexer(String[] names, String[] tokenRegex, String[] omitNames) {
+        super(names, tokenRegex);
+        this.omitNames = List.of(omitNames);
     }
 
     private int index;
     private String input;
     private String nextToken;
-    private DFA omitter;
+    private List<String> omitNames;
+    private Set<String> lastMatchNames;
 
     public void init(String input) {
         this.index = 0;
@@ -44,10 +38,22 @@ public class Lexer extends DFA {
         nextToken = null;
     }
 
+    public String lastMatchType() {
+        return DFA.toName(lastMatchNames);
+    }
+
     public String next() {
-        String nextToken = nextMatch();
-        while (omitter.match(nextToken)) {
+        String nextToken = null;
+        boolean skip = true;
+        while (skip) {
             nextToken = nextMatch();
+            skip = false;
+            for (String name : lastMatchNames) {
+                if (omitNames.contains(name)) {
+                    skip = true;
+                    break;
+                }
+            }
         }
         return nextToken;
     }
@@ -58,6 +64,7 @@ public class Lexer extends DFA {
             nextToken = null;
             return temp;
         }
+        lastMatchNames = null;
 
         Node current = startState;
         int startIndex = index;
@@ -73,11 +80,13 @@ public class Lexer extends DFA {
             index++;
             if (acceptStates.contains(current)) {
                 lastMatchIndex = index;
+                lastMatchNames = current.regexMatch;
             }
         }
 
         if (lastMatchIndex == -1) {
             index = input.length();
+            lastMatchNames = null;
             throw new NoSuchElementException();
         } else {
             index = lastMatchIndex;
@@ -122,15 +131,16 @@ public class Lexer extends DFA {
         String identifier = LETTER + "(" + LETTER + "|" + DIGIT + ")*";
         String number = DIGIT + "+";
         String operation = "\\+|\\*|/|-|%";
-        String[] omit = {OPTIONAL_WHITESPACE};
-        Lexer lexer = new Lexer(omit, identifier, number, operation, OPTIONAL_WHITESPACE, "=");
 
-        lexer.init("a+b + c+d + JP09jagp90J9P9 + 5");
+        String[] omit = {"WhiteSpace"};
+        String[] names = {"Name", "Int", "Operation", "WhiteSpace", "EQ"};
+        String[] tokens = {identifier, number, operation, OPTIONAL_WHITESPACE, "="};
+        Lexer lexer = new Lexer(names, tokens, omit);
+
+        // TODO: Find out why + and = come out as Operation | EQ
+        lexer.init("AYY +LMAO= 42");
         while(lexer.hasNext()) {
-            System.out.println(lexer.next());
+            System.out.println(lexer.next() + " : " + lexer.lastMatchType());
         }
-
-        lexer.init(" A1+A2+A3 + 23456=");
-        Stream.of(lexer.tokenizeUntilError()).forEach(System.out::println);
     }
 }
