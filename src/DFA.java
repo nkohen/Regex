@@ -1,7 +1,7 @@
 import java.util.*;
 
 public class DFA {
-    private class Node {
+    class Node {
         // For use in traversals
         boolean marked = false;
 
@@ -21,8 +21,8 @@ public class DFA {
         Node() {}
     }
 
-    private Node startState;
-    private List<Node> acceptStates = new ArrayList<>();
+    Node startState;
+    List<Node> acceptStates = new ArrayList<>();
 
     public DFA(String regex) {
         initFrom(NFA.makeNFA(regex));
@@ -331,7 +331,7 @@ public class DFA {
     }
 
     // Output the graph in GraphViz
-    public String toString() {
+    public String toString() { // TODO: add support for whitespace characters
         StringBuilder out = new StringBuilder("digraph G {\nahead [shape = plaintext, label = \"\"];\nahead-> a0;\n");
         int nextName = 0;
         Map<Node, Integer> name = new HashMap<>();

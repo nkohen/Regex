@@ -1,5 +1,5 @@
-public class RegexAST {
-    private static char[] operators = {'|', '*', '^', '+'};
+public class RegexAST { // TODO: Add support for wildcard and NOT (~)
+    private static char[] operators = {'|', '*', '^'};
     private static boolean isCharOperator(char c) {
         for (char op : operators) {
             if (op == c)
