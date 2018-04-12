@@ -53,11 +53,13 @@ public class Lexer extends DFA {
         Set<String> highest = new HashSet<>();
         int max = Integer.MIN_VALUE;
         for (String name : nameSet) {
-            if (priority.get(name) > max) {
-                max = priority.get(name);
+            int num = priority.getOrDefault(name, 0);
+
+            if (num > max) {
+                max = num;
                 highest = new HashSet<>();
             }
-            if (max == priority.get(name))
+            if (max == num)
                 highest.add(name);
         }
         return highest;
@@ -173,11 +175,7 @@ public class Lexer extends DFA {
         Lexer lexer = new Lexer(names, tokens);
         Lexer lexer1 = new Lexer(names, tokens, omit);
         Map<String, Integer> priority = new HashMap<>();
-        priority.put("Name", 1);
-        priority.put("Int", 2);
-        priority.put("Operation", 2);
-        priority.put("WhiteSpace", 2);
-        priority.put("EQ", 2);
+        priority.put("Name", -1);
         Lexer lexer2 = new Lexer(names, priority, tokens, omit);
 
         lexer.init("AYY +LMAO= 42");
