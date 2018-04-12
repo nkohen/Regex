@@ -137,7 +137,6 @@ public class Lexer extends DFA {
         String[] tokens = {identifier, number, operation, OPTIONAL_WHITESPACE, "="};
         Lexer lexer = new Lexer(names, tokens, omit);
 
-        // TODO: Find out why + and = come out as Operation | EQ
         lexer.init("AYY +LMAO= 42");
         while(lexer.hasNext()) {
             System.out.println(lexer.next() + " : " + lexer.lastMatchType());

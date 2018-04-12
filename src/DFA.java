@@ -145,7 +145,7 @@ public class DFA {
 
         List<Set<Node>> partition = new LinkedList<>();
         partition.add(notFinalStates);
-        partition.add(finalStates);
+        partition.addAll(refineFinalStates(finalStates, membership));
 
         boolean done = false;
         while(!done) {
@@ -174,6 +174,26 @@ public class DFA {
         }
 
         updateDFA(partition, membership);
+    }
+
+    private Collection<Set<Node>> refineFinalStates(Set<Node> finalStates, Map<Node, Set<Node>> membership) {
+        // If you want minimization with accept states possibly belonging to multiple tokens, uncomment the following
+        // return List.of(finalStates);
+
+        Map<String, Set<Node>> matchRegexToSetMap = new HashMap<>();
+        for (Node node : finalStates) {
+            String name;
+            if (node.regexMatch == null) {
+                name = "\0";
+            } else
+                name = toName(node.regexMatch);
+            if (!matchRegexToSetMap.containsKey(name))
+                matchRegexToSetMap.put(name, new HashSet<>());
+            matchRegexToSetMap.get(name).add(node);
+            membership.put(node, matchRegexToSetMap.get(name));
+        }
+
+        return matchRegexToSetMap.values();
     }
 
     // Given a valid partition, sets this to be a new DFA
@@ -407,6 +427,14 @@ public class DFA {
         System.out.println(dfa);
 
         dfa = new DFA("a?b{3}*");
+        System.out.println(dfa);
+
+        dfa = new DFA("a|b");
+        System.out.println(dfa);
+
+        String[] names = {"A", "B"};
+        String[] tokens = {"a", "b"};
+        dfa = new DFA(names, tokens);
         System.out.println(dfa);
     }
 }
