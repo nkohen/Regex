@@ -1,11 +1,5 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.stream.Stream;
+import java.util.*;
 
-// TODO: Add priorities to the given REGEX's and their corresponding accept states
-// TODO: Have a way of knowing which type of token was matched (by marking accept states?)
 // TODO: Add Unit tests
 public class Lexer extends DFA {
     public static final String DIGIT = "(0|1|2|3|4|5|6|7|8|9)";
@@ -19,11 +13,19 @@ public class Lexer extends DFA {
     public Lexer(String[] names, String[] tokenRegex) {
         super(names, tokenRegex);
         this.omitNames = new ArrayList<>();
+        this.priority = null;
     }
 
     public Lexer(String[] names, String[] tokenRegex, String[] omitNames) {
         super(names, tokenRegex);
         this.omitNames = List.of(omitNames);
+        this.priority = null;
+    }
+
+    public Lexer(String[] names, Map<String, Integer> priority, String[] tokenRegex, String[] omitNames) {
+        super(names, tokenRegex);
+        this.omitNames = List.of(omitNames);
+        this.priority = priority;
     }
 
     private int index;
@@ -31,6 +33,7 @@ public class Lexer extends DFA {
     private String nextToken;
     private List<String> omitNames;
     private Set<String> lastMatchNames;
+    private Map<String, Integer> priority;
 
     public void init(String input) {
         this.index = 0;
@@ -39,7 +42,25 @@ public class Lexer extends DFA {
     }
 
     public String lastMatchType() {
-        return DFA.toName(lastMatchNames);
+        if (priority != null) {
+            return DFA.toName(highestPriority(lastMatchNames));
+        } else {
+            return DFA.toName(lastMatchNames);
+        }
+    }
+
+    private Set<String> highestPriority(Set<String> nameSet) {
+        Set<String> highest = new HashSet<>();
+        int max = Integer.MIN_VALUE;
+        for (String name : nameSet) {
+            if (priority.get(name) > max) {
+                max = priority.get(name);
+                highest = new HashSet<>();
+            }
+            if (max == priority.get(name))
+                highest.add(name);
+        }
+        return highest;
     }
 
     public String next() {
@@ -58,6 +79,7 @@ public class Lexer extends DFA {
         return nextToken;
     }
 
+    // This does not omit
     public String nextMatch() {
         if (nextToken != null) {
             String temp = nextToken;
@@ -107,6 +129,19 @@ public class Lexer extends DFA {
         return true;
     }
 
+    public boolean hasNextMatch() {
+        if (nextToken != null)
+            return true;
+
+        try {
+            nextToken = nextMatch();
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+
+        return true;
+    }
+
     public String[] tokenize() {
         List<String> tokens = new ArrayList<>();
         while (index < input.length()) {
@@ -128,18 +163,40 @@ public class Lexer extends DFA {
     }
 
     public static void main(String[] args) {
-        String identifier = LETTER + "(" + LETTER + "|" + DIGIT + ")*";
+        String identifier = "(" + LETTER + "|" + DIGIT + ")*";
         String number = DIGIT + "+";
         String operation = "\\+|\\*|/|-|%";
 
         String[] omit = {"WhiteSpace"};
         String[] names = {"Name", "Int", "Operation", "WhiteSpace", "EQ"};
         String[] tokens = {identifier, number, operation, OPTIONAL_WHITESPACE, "="};
-        Lexer lexer = new Lexer(names, tokens, omit);
+        Lexer lexer = new Lexer(names, tokens);
+        Lexer lexer1 = new Lexer(names, tokens, omit);
+        Map<String, Integer> priority = new HashMap<>();
+        priority.put("Name", 1);
+        priority.put("Int", 2);
+        priority.put("Operation", 2);
+        priority.put("WhiteSpace", 2);
+        priority.put("EQ", 2);
+        Lexer lexer2 = new Lexer(names, priority, tokens, omit);
 
         lexer.init("AYY +LMAO= 42");
         while(lexer.hasNext()) {
             System.out.println(lexer.next() + " : " + lexer.lastMatchType());
+        }
+
+        System.out.println();
+
+        lexer1.init("AYY +LMAO= 42");
+        while(lexer1.hasNext()) {
+            System.out.println(lexer1.next() + " : " + lexer1.lastMatchType());
+        }
+
+        System.out.println();
+
+        lexer2.init("AYY +LMAO= 42");
+        while(lexer2.hasNext()) {
+            System.out.println(lexer2.next() + " : " + lexer2.lastMatchType());
         }
     }
 }
