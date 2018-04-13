@@ -9,6 +9,7 @@ class RegexASTTest {
 
     private static final RegexAST EMPTYWORD = makeAST("");
     private static final RegexAST SINGLE_CHAR = makeAST("a");
+    private static final RegexAST WILDCARD = makeAST(".");
     private static final RegexAST STAR = makeAST("a*");
     private static final RegexAST CONCAT = makeAST("ab");
     private static final RegexAST OR = makeAST("a|b");
@@ -17,6 +18,7 @@ class RegexASTTest {
     public void isEmptyWordTest() {
         assertTrue(EMPTYWORD.isEmptyWord());
         assertFalse(SINGLE_CHAR.isEmptyWord());
+        assertFalse(WILDCARD.isEmptyWord());
         assertFalse(STAR.isEmptyWord());
         assertFalse(CONCAT.isEmptyWord());
         assertFalse(OR.isEmptyWord());
@@ -35,6 +37,7 @@ class RegexASTTest {
     public void isOperatorTest() {
         assertFalse(EMPTYWORD.isOperator());
         assertFalse(SINGLE_CHAR.isOperator());
+        assertFalse(WILDCARD.isOperator());
         assertTrue(STAR.isOperator());
         assertTrue(CONCAT.isOperator());
         assertTrue(OR.isOperator());
@@ -44,6 +47,7 @@ class RegexASTTest {
     public void valueTest() {
         assertEquals('\0', EMPTYWORD.value());
         assertEquals('a', SINGLE_CHAR.value());
+        assertEquals('.', WILDCARD.value());
         assertEquals('\0', STAR.value());
         assertEquals('\0', CONCAT.value());
         assertEquals('\0', OR.value());
@@ -53,6 +57,7 @@ class RegexASTTest {
     public void operatorTest() {
         assertEquals('\0', EMPTYWORD.operator());
         assertEquals('\0', SINGLE_CHAR.operator());
+        assertEquals('\0', WILDCARD.operator());
         assertEquals('*', STAR.operator());
         assertEquals('^', CONCAT.operator());
         assertEquals('|', OR.operator());
@@ -62,6 +67,7 @@ class RegexASTTest {
     public void toStringTest() {
         assertEquals("emptyword", EMPTYWORD.toString());
         assertEquals("a", SINGLE_CHAR.toString());
+        assertEquals("(WILDCARD)", WILDCARD.toString());
         assertEquals("(* a)", STAR.toString());
         assertEquals("(^ a b)", CONCAT.toString());
         assertEquals("(| a b)", OR.toString());
@@ -116,11 +122,13 @@ class RegexASTTest {
         escapeAndTest('}');
         escapeAndTest('(');
         escapeAndTest(')');
+        escapeAndTest('.');
     }
 
     @Test
     public void multipleQuantifiersTest() {
         assertEquals(makeAST("(a*)*"), makeAST("a**"));
+        assertEquals(makeAST("(.*)*"), makeAST(".**"));
         assertEquals(makeAST("(a+)*"), makeAST("a+*"));
         assertEquals(makeAST("(a{3,5})?"), makeAST("a{3,5}?"));
     }
@@ -129,5 +137,11 @@ class RegexASTTest {
     public void quantifyCharacterAndConcat() {
         assertEquals(makeAST("(a*)b"), makeAST("a*b"));
         assertEquals(makeAST("b((a*)+)"), makeAST("ba*+"));
+    }
+
+    @Test
+    public void isWildcardTest() {
+        assertTrue(WILDCARD.isWildcard());
+        assertFalse(makeAST("\\.").isWildcard());
     }
 }

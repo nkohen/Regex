@@ -3,6 +3,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class NFA {
+    public static final char WILDCARD = '\177';
+
     static class Node {
         // If Node is an acceptState, this is what it matches (for use in Lexer)
         String regexMatch;
@@ -61,6 +63,16 @@ public class NFA {
         if (regex.isEmptyWord()) {
             nfa.startState = new Node();
             nfa.acceptStates.add(nfa.startState);
+            return nfa;
+        }
+
+        // If regex is the wildcard, then create NFA that matches any single character
+        if (regex.isWildcard()) {
+            Node start = new Node();
+            Node end = new Node();
+            start.put(WILDCARD, end);
+            nfa.startState = start;
+            nfa.acceptStates.add(end);
             return nfa;
         }
 
@@ -125,11 +137,13 @@ public class NFA {
                     String label;
                     switch (c) {
                         case '\0': label = "eps"; break;
+                        case NFA.WILDCARD: label = "WILDCARD"; break;
                         case ' ': label = "SPACE"; break;
-                        case '\n': label = "\\n"; break;
-                        case '\t': label = "\\t"; break;
-                        case '\f': label = "\\f"; break;
-                        case '\r': label = "\\r"; break;
+                        case '\n': label = "NEWLINE"; break;
+                        case '\t': label = "TAB"; break;
+                        case '\f': label = "FORMFEED"; break;
+                        case '\r': label = "CARRIAGERETURN"; break;
+                        case '\\': label = "BACKSLASH"; break;
                         default: label = Character.toString(c);
                     }
 

@@ -1,4 +1,4 @@
-public class RegexAST { // TODO: Add support for wildcard and NOT (~)
+public class RegexAST { // TODO: Add support for NOT (~)
     private static char[] operators = {'|', '*', '^'};
     private static boolean isCharOperator(char c) {
         for (char op : operators) {
@@ -17,6 +17,7 @@ public class RegexAST { // TODO: Add support for wildcard and NOT (~)
         char operator;
         char value;
         boolean isOperator;
+        boolean isWildcard = false;
         ASTNode left; // Not used by non-operators
         ASTNode right; // Not used by unary operators
 
@@ -32,7 +33,15 @@ public class RegexAST { // TODO: Add support for wildcard and NOT (~)
             this.right = right;
         }
 
+        private static ASTNode getWildcard() {
+            ASTNode wildcard = new ASTNode('.', null, null);
+            wildcard.isWildcard = true;
+            return wildcard;
+        }
+
         public String toString() {
+            if (isWildcard)
+                return "(WILDCARD)";
             if (!isOperator || left == null) {
                 return Character.toString(value);
             }
@@ -68,6 +77,10 @@ public class RegexAST { // TODO: Add support for wildcard and NOT (~)
 
     public boolean isOperator() {
         return root != null && root.isOperator;
+    }
+
+    public boolean isWildcard() {
+        return root != null && root.isWildcard;
     }
 
     public char value() {
@@ -257,6 +270,8 @@ public class RegexAST { // TODO: Add support for wildcard and NOT (~)
                 // Create a node for the character
                 if (regex.charAt(index) == '\0')
                     result = null;
+                else if (regex.charAt(index) == '.' && index > 0 && regex.charAt(index - 1) != '\\')
+                    result = ASTNode.getWildcard();
                 else
                     result = new ASTNode(regex.charAt(index), null, null);
 

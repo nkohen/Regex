@@ -110,7 +110,7 @@ public class DFA {
         clearPowerSetStates(allNodes);
 
         // Make into a minimal DFA
-        minimize();
+        //minimize();
     }
 
     private void initRegexMatch(List<NFA.Node> finalStates, Node node) {
@@ -376,9 +376,13 @@ public class DFA {
     public boolean match(String input) {
         Node current = startState;
         for (int i = 0; i < input.length(); i++) {
-            if (!current.neighbors.containsKey(input.charAt(i)))
-                return false;
-            current = current.neighbors.get(input.charAt(i));
+            if (!current.neighbors.containsKey(input.charAt(i))) {
+                if (current.neighbors.containsKey(NFA.WILDCARD))
+                    current = current.neighbors.get(NFA.WILDCARD);
+                else
+                    return false;
+            } else
+                current = current.neighbors.get(input.charAt(i));
         }
 
         return acceptStates.contains(current);
@@ -403,11 +407,13 @@ public class DFA {
 
                 String label;
                 switch (c) {
+                    case NFA.WILDCARD: label = "WILDCARD"; break;
                     case ' ': label = "SPACE"; break;
-                    case '\n': label = "\\n"; break;
-                    case '\t': label = "\\t"; break;
-                    case '\f': label = "\\f"; break;
-                    case '\r': label = "\\r"; break;
+                    case '\n': label = "NEWLINE"; break;
+                    case '\t': label = "TAB"; break;
+                    case '\f': label = "FORMFEED"; break;
+                    case '\r': label = "CARRIAGERETURN"; break;
+                    case '\\': label = "BACKSLASH"; break;
                     default: label = Character.toString(c);
                 }
 

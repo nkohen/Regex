@@ -6,7 +6,7 @@ public class Lexer extends DFA {
     public static final String LOWER_CASE = "(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)";
     public static final String UPPER_CASE = "(A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z)";
     public static final String LETTER = "(" + LOWER_CASE + "|" + UPPER_CASE + ")";
-    public static final String SINGLE_WHITESPACE = "( |\t|\n|\11|\f|\r)";
+    public static final String SINGLE_WHITESPACE = "( |\t|\n|\f|\r)";
     public static final String OPTIONAL_WHITESPACE = SINGLE_WHITESPACE + "*";
     public static final String WHITESPACE = SINGLE_WHITESPACE + "+";
 
@@ -20,6 +20,12 @@ public class Lexer extends DFA {
         super(names, tokenRegex);
         this.omitNames = List.of(omitNames);
         this.priority = null;
+    }
+
+    public Lexer(String[] names, Map<String, Integer> priority, String[] tokenRegex) {
+        super(names, tokenRegex);
+        this.omitNames = new ArrayList<>();
+        this.priority = priority;
     }
 
     public Lexer(String[] names, Map<String, Integer> priority, String[] tokenRegex, String[] omitNames) {
@@ -96,11 +102,15 @@ public class Lexer extends DFA {
 
         while (index < input.length()) {
             if (!current.neighbors.containsKey(input.charAt(index))) {
-                index = lastMatchIndex;
-                break;
-            }
+                if (current.neighbors.containsKey(NFA.WILDCARD)) {
+                    current = current.neighbors.get(NFA.WILDCARD);
+                } else {
+                    index = lastMatchIndex;
+                    break;
+                }
+            } else
+                current = current.neighbors.get(input.charAt(index));
 
-            current = current.neighbors.get(input.charAt(index));
             index++;
             if (acceptStates.contains(current)) {
                 lastMatchIndex = index;
@@ -168,7 +178,7 @@ public class Lexer extends DFA {
         String identifier = "(" + LETTER + "|" + DIGIT + ")*";
         String number = DIGIT + "+";
         String operation = "\\+|\\*|/|-|%";
-        String comment = "\\\\\\*(" + LETTER + "|" + DIGIT + "|" + WHITESPACE + ")*\\*\\\\";
+        String comment = "\\\\\\*.*\\*\\\\";
 
         String[] omit = {"WhiteSpace", "Comment"};
         String[] names = {"Name", "Int", "Operation", "WhiteSpace", "EQ", "Comment"};
@@ -179,21 +189,24 @@ public class Lexer extends DFA {
         priority.put("Name", -1);
         Lexer lexer2 = new Lexer(names, priority, tokens, omit);
 
-        lexer.init("AYY +LMAO= 42");
+        lexer.init("AYY +LMAO\\* Just a comment sakd.f/qer89\nqpon;asoifj\0\127*\\= 42");
+        System.out.println("lexer\n------");
         while(lexer.hasNext()) {
             System.out.println(lexer.next() + " : " + lexer.lastMatchType());
         }
 
         System.out.println();
 
-        lexer1.init("AYY +LMAO= 42");
+        lexer1.init("AYY +LMAO\\* Just a comment sakd.f/qer89\nqpon;asoifj\0\127*\\= 42");
+        System.out.println("lexer1\n------");
         while(lexer1.hasNext()) {
             System.out.println(lexer1.next() + " : " + lexer1.lastMatchType());
         }
 
         System.out.println();
 
-        lexer2.init("AYY +LMAO\\* Just a comment 234odisgn*\\= 42");
+        lexer2.init("AYY +LMAO\\* Just a comment sakd.f/qer89\nqpon;asoifj\0\127*\\= 42");
+        System.out.println("lexer2\n------");
         while(lexer2.hasNext()) {
             System.out.println(lexer2.next() + " : " + lexer2.lastMatchType());
         }
