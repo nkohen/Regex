@@ -385,7 +385,7 @@ public class DFA {
     }
 
     // Output the graph in GraphViz
-    public String toString() { // TODO: add support for whitespace characters
+    public String toString() {
         StringBuilder out = new StringBuilder("digraph G {\nahead [shape = plaintext, label = \"\"];\nahead-> a0;\n");
         int nextName = 0;
         Map<Node, Integer> name = new HashMap<>();
@@ -400,9 +400,19 @@ public class DFA {
                     name.put(neighbor, nextName++);
                     toProcess.add(neighbor);
                 }
-                // out += "a" + name.get(currentNode) + " -> a" + name.get(neighbor) + " [label = \"" + c + "\"];\n";
+
+                String label;
+                switch (c) {
+                    case ' ': label = "SPACE"; break;
+                    case '\n': label = "\\n"; break;
+                    case '\t': label = "\\t"; break;
+                    case '\f': label = "\\f"; break;
+                    case '\r': label = "\\r"; break;
+                    default: label = Character.toString(c);
+                }
+
                 out.append("a").append(name.get(currentNode))
-                        .append(" -> a").append(name.get(neighbor)).append(" [label = \"").append(c).append("\"];\n");
+                        .append(" -> a").append(name.get(neighbor)).append(" [label = \"").append(label).append("\"];\n");
             }
         }
 

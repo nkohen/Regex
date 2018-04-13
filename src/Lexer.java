@@ -168,10 +168,11 @@ public class Lexer extends DFA {
         String identifier = "(" + LETTER + "|" + DIGIT + ")*";
         String number = DIGIT + "+";
         String operation = "\\+|\\*|/|-|%";
+        String comment = "\\\\\\*(" + LETTER + "|" + DIGIT + "|" + WHITESPACE + ")*\\*\\\\";
 
-        String[] omit = {"WhiteSpace"};
-        String[] names = {"Name", "Int", "Operation", "WhiteSpace", "EQ"};
-        String[] tokens = {identifier, number, operation, OPTIONAL_WHITESPACE, "="};
+        String[] omit = {"WhiteSpace", "Comment"};
+        String[] names = {"Name", "Int", "Operation", "WhiteSpace", "EQ", "Comment"};
+        String[] tokens = {identifier, number, operation, OPTIONAL_WHITESPACE, "=", comment};
         Lexer lexer = new Lexer(names, tokens);
         Lexer lexer1 = new Lexer(names, tokens, omit);
         Map<String, Integer> priority = new HashMap<>();
@@ -192,7 +193,7 @@ public class Lexer extends DFA {
 
         System.out.println();
 
-        lexer2.init("AYY +LMAO= 42");
+        lexer2.init("AYY +LMAO\\* Just a comment 234odisgn*\\= 42");
         while(lexer2.hasNext()) {
             System.out.println(lexer2.next() + " : " + lexer2.lastMatchType());
         }

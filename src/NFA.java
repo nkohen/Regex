@@ -121,10 +121,20 @@ public class NFA {
                         name.put(neighbor, nextName++);
                         toProcess.add(neighbor);
                     }
-                    // out += "a" + name.get(currentNode) + " -> a" + name.get(neighbor) +
-                    //     " [label = \"" + ((c == '\0')?"eps":c) + "\"];\n";
+
+                    String label;
+                    switch (c) {
+                        case '\0': label = "eps"; break;
+                        case ' ': label = "SPACE"; break;
+                        case '\n': label = "\\n"; break;
+                        case '\t': label = "\\t"; break;
+                        case '\f': label = "\\f"; break;
+                        case '\r': label = "\\r"; break;
+                        default: label = Character.toString(c);
+                    }
+
                     out.append("a").append(name.get(currentNode)).append(" -> a").append(name.get(neighbor))
-                            .append(" [label = \"").append((c == '\0')?"eps":c).append("\"];\n");
+                            .append(" [label = \"").append(label).append("\"];\n");
                 }
             }
         }
