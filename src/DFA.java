@@ -180,6 +180,7 @@ public class DFA {
         // If you want minimization with accept states possibly belonging to multiple tokens, uncomment the following
         // return List.of(finalStates);
 
+        // TODO: This might be problematic if we have "A | B" and "B | A" which should go together but won't.
         Map<String, Set<Node>> matchRegexToSetMap = new HashMap<>();
         for (Node node : finalStates) {
             String name;

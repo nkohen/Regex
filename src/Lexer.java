@@ -10,6 +10,20 @@ public class Lexer extends DFA {
     public static final String OPTIONAL_WHITESPACE = SINGLE_WHITESPACE + "*";
     public static final String WHITESPACE = SINGLE_WHITESPACE + "+";
 
+    public static class Token {
+        String value;
+        String type;
+
+        public Token(String value, String type) {
+            this.value = value;
+            this.type = type;
+        }
+
+        public String toString() {
+            return value + " : " + type;
+        }
+    }
+
     public Lexer(String[] names, String[] tokenRegex) {
         super(names, tokenRegex);
         this.omitNames = new ArrayList<>();
@@ -41,10 +55,12 @@ public class Lexer extends DFA {
     private Set<String> lastMatchNames;
     private Map<String, Integer> priority;
 
-    public void init(String input) {
+    public Lexer init(String input) {
         this.index = 0;
         this.input = input;
         nextToken = null;
+
+        return this;
     }
 
     public String lastMatchType() {
@@ -71,6 +87,10 @@ public class Lexer extends DFA {
         return highest;
     }
 
+    public Token nextToken() {
+        return new Token(next(), lastMatchType());
+    }
+
     public String next() {
         String nextToken = null;
         boolean skip = true;
@@ -85,6 +105,10 @@ public class Lexer extends DFA {
             }
         }
         return nextToken;
+    }
+
+    public Token nextMatchedToken() {
+        return new Token(nextMatch(), lastMatchType());
     }
 
     // This does not omit
@@ -154,22 +178,22 @@ public class Lexer extends DFA {
         return true;
     }
 
-    public String[] tokenize() {
-        List<String> tokens = new ArrayList<>();
+    public Token[] tokenize() {
+        List<Token> tokens = new ArrayList<>();
         while (index < input.length()) {
-            tokens.add(next());
+            tokens.add(nextToken());
         }
-        String[] finalTokens = new String[tokens.size()];
+        Token[] finalTokens = new Token[tokens.size()];
         tokens.toArray(finalTokens);
         return finalTokens;
     }
 
-    public String[] tokenizeUntilError() {
-        List<String> tokens = new ArrayList<>();
+    public Token[] tokenizeUntilError() {
+        List<Token> tokens = new ArrayList<>();
         while (hasNext()) {
-            tokens.add(next());
+            tokens.add(nextToken());
         }
-        String[] finalTokens = new String[tokens.size()];
+        Token[] finalTokens = new Token[tokens.size()];
         tokens.toArray(finalTokens);
         return finalTokens;
     }
@@ -178,7 +202,7 @@ public class Lexer extends DFA {
         String identifier = "(" + LETTER + "|" + DIGIT + ")*";
         String number = DIGIT + "+";
         String operation = "\\+|\\*|/|-|%";
-        String comment = "\\\\\\*.*\\*\\\\";
+        String comment = "\\\\\\*.*\\*\\\\|//.*\n";
 
         String[] omit = {"WhiteSpace", "Comment"};
         String[] names = {"Name", "Int", "Operation", "WhiteSpace", "EQ", "Comment"};
@@ -189,7 +213,7 @@ public class Lexer extends DFA {
         priority.put("Name", -1);
         Lexer lexer2 = new Lexer(names, priority, tokens, omit);
 
-        lexer.init("AYY +LMAO\\* Just a comment sakd.f/qer89\nqpon;asoifj\0\127*\\= 42");
+        lexer.init("AYY +LMAO\\* Just a comment sakd.f/qer89\nqpon;asoifj\0\127*\\= 42// Hi!\n");
         System.out.println("lexer\n------");
         while(lexer.hasNext()) {
             System.out.println(lexer.next() + " : " + lexer.lastMatchType());
@@ -197,7 +221,7 @@ public class Lexer extends DFA {
 
         System.out.println();
 
-        lexer1.init("AYY +LMAO\\* Just a comment sakd.f/qer89\nqpon;asoifj\0\127*\\= 42");
+        lexer1.init("AYY +LMAO\\* Just a comment sakd.f/qer89\nqpon;asoifj\0\127*\\= 42// Hi!\n");
         System.out.println("lexer1\n------");
         while(lexer1.hasNext()) {
             System.out.println(lexer1.next() + " : " + lexer1.lastMatchType());
@@ -205,10 +229,16 @@ public class Lexer extends DFA {
 
         System.out.println();
 
-        lexer2.init("AYY +LMAO\\* Just a comment sakd.f/qer89\nqpon;asoifj\0\127*\\= 42");
+        lexer2.init("AYY +LMAO\\* Just a comment sakd.f/qer89\nqpon;asoifj\0\127*\\= 42// Hi!\n");
         System.out.println("lexer2\n------");
         while(lexer2.hasNext()) {
             System.out.println(lexer2.next() + " : " + lexer2.lastMatchType());
         }
+
+        System.out.println();
+
+        System.out.println("lexer3");
+        Arrays.stream(new Lexer(names, priority, tokens, omit)
+                .init("Hello + World= \\*Oops*\\Java9").tokenize()).forEach(System.out::println);
     }
 }
