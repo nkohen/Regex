@@ -143,7 +143,7 @@ public class Lexer extends DFA {
         }
 
         if (lastMatchIndex == -1) {
-            index = input.length();
+            index = startIndex;
             lastMatchNames = null;
             throw new NoSuchElementException();
         } else {
@@ -180,22 +180,18 @@ public class Lexer extends DFA {
 
     public Token[] tokenize() {
         List<Token> tokens = new ArrayList<>();
-        while (index < input.length()) {
+        while (hasNext()) {
             tokens.add(nextToken());
         }
+        if(!remaining().isEmpty())
+            tokens.add(new Token(remaining(), "UNMATCHED by Lexer"));
         Token[] finalTokens = new Token[tokens.size()];
         tokens.toArray(finalTokens);
         return finalTokens;
     }
 
-    public Token[] tokenizeUntilError() {
-        List<Token> tokens = new ArrayList<>();
-        while (hasNext()) {
-            tokens.add(nextToken());
-        }
-        Token[] finalTokens = new Token[tokens.size()];
-        tokens.toArray(finalTokens);
-        return finalTokens;
+    public String remaining() {
+        return input.substring(index);
     }
 
     public static void main(String[] args) {
@@ -229,7 +225,7 @@ public class Lexer extends DFA {
 
         System.out.println();
 
-        lexer2.init("AYY +LMAO\\* Just a comment sakd.f/qer89\nqpon;asoifj\0\127*\\= 42// Hi!\n");
+        lexer2.init("AYY +LMAO\\* Just a comment sakd.f/qer89\nqpon;asoifj\0\127*\\= 42// Hi!\n?");
         System.out.println("lexer2\n------");
         while(lexer2.hasNext()) {
             System.out.println(lexer2.next() + " : " + lexer2.lastMatchType());
@@ -239,6 +235,6 @@ public class Lexer extends DFA {
 
         System.out.println("lexer3");
         Arrays.stream(new Lexer(names, priority, tokens, omit)
-                .init("Hello + World= \\*Oops*\\Java9").tokenize()).forEach(System.out::println);
+                .init("Hello + World= \\*Oops*\\Java9?Oops again, can't have ?").tokenize()).forEach(System.out::println);
     }
 }
