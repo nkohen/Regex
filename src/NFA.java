@@ -2,7 +2,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * This class describes a Non-deterministic Finite Automaton for a given regular expression
+ *
+ * NFA does not currently support matching a String against a regex
+ * If this is your intent, see {@link DFA} which turns an NFA into an equivalent Deterministic Finite Automaton
+ *
+ * For supported ways of writing regular expressions, see {@link RegexAST}
+ */
 public class NFA {
+    /**
+     * The char value of the wildcard character (currently DEL)
+     */
     public static final char WILDCARD = '\177';
 
     static class Node {
@@ -25,12 +36,24 @@ public class NFA {
     Node startState = null;
     List<Node> acceptStates = new ArrayList<>();
 
+    /**
+     * @param names An array of the labels where names[i] corresponds to regex[i]
+     * @param regex An array of valid regular expressions to be matched
+     * @return Constructs an NFA that matches any of the given regular expressions
+     * where accepting states are labeled with given names
+     */
     public static NFA makeNFA(String[] names, String[] regex) {
         List<RegexAST> trees = Stream.of(regex).map(RegexAST::new).collect(Collectors.toList());
         RegexAST[] treesArray = new RegexAST[trees.size()];
         return makeNFA(names, trees.toArray(treesArray));
     }
 
+    /**
+     * @param names An array of the labels where names[i] corresponds to regex[i]
+     * @param regex An array of {@link RegexAST}s to be matched
+     * @return Constructs an NFA that matches any of the given regular expressions
+     * where accepting states are labeled with given names
+     */
     public static NFA makeNFA(String[] names, RegexAST[] regex) {
         List<NFA> nfas = Stream.of(regex).map(NFA::makeNFA).collect(Collectors.toList());
         for (int i = 0; i < names.length; i++) {
@@ -52,10 +75,18 @@ public class NFA {
         return result;
     }
 
+    /**
+     * @param regex The valid regular expression to be matched
+     * @return Constructs an NFA that matches the given regular expression
+     */
     public static NFA makeNFA(String regex) {
         return makeNFA(new RegexAST(regex));
     }
 
+    /**
+     * @param regex A {@link RegexAST} to be matched
+     * @return Constructs an NFA that matches the given regular expression
+     */
     public static NFA makeNFA(RegexAST regex) {
         NFA nfa = new NFA();
 
@@ -117,7 +148,10 @@ public class NFA {
         return nfa;
     }
 
-    // Output the graph in GraphViz
+    /**
+     * @return A GraphViz representation of this NFA with labeled edges for transitions
+     * (where eps, short for epsilon, is the label for the empty word)
+     */
     public String toString() {
         StringBuilder out = new StringBuilder("digraph G {\nahead [shape = plaintext, label = \"\"];\nahead-> a0;\n");
         int nextName = 0;

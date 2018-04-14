@@ -1,6 +1,5 @@
 /**
- * This class represents an abstract syntax tree for a regular expression.
- * The constructor takes in a regular expression as a String.
+ * This class describes an abstract syntax tree for a given regular expression
  *
  * Supported regex operations and (greedy) quantifiers: (where A and B are regular expressions, and x is any character)
  * A|B - A or B
