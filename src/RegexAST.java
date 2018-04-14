@@ -1,5 +1,21 @@
-public class RegexAST { // TODO: Add support for NOT (~)
-    private static char[] operators = {'|', '*', '^'};
+/**
+ * This class represents an abstract syntax tree for a regular expression.
+ * The constructor takes in a regular expression as a String.
+ *
+ * Supported regex operations and (greedy) quantifiers: (where A and B are regular expressions, and x is any character)
+ * A|B - A or B
+ * AB - A followed by B
+ * A* - 0 or more A's
+ * A? - 0 or 1 A's
+ * A+ - 1 or more A's
+ * A{n} - exactly n A's
+ * A{n,m} - n to m A's inclusive
+ * \x - escaped x (e.g. \*, \\, \+, \{n,m}, \., etc.); escaping a character unnecissarily has no effect
+ * . - wildcard character (matches any single character)
+ */
+public class RegexAST {
+    // TODO: Add support for NOT (~), intersection (&), and ranges (a-z)
+    private static char[] operators = {'|', '*', '^', '~'};
     private static boolean isCharOperator(char c) {
         for (char op : operators) {
             if (op == c)
@@ -39,6 +55,9 @@ public class RegexAST { // TODO: Add support for NOT (~)
             return wildcard;
         }
 
+        /**
+         * @return A flattened representation of the syntax tree in the form (op left right?)
+         */
         public String toString() {
             if (isWildcard)
                 return "(WILDCARD)";
@@ -53,7 +72,8 @@ public class RegexAST { // TODO: Add support for NOT (~)
         }
 
         boolean equals(ASTNode that) {
-            if (that == null || this.operator != that.operator || this.value != that.value || this.isOperator != that.isOperator)
+            if (that == null || this.operator != that.operator || this.value != that.value ||
+                    this.isOperator != that.isOperator || this.isWildcard != that.isWildcard)
                 return false;
 
             if (this.left == null)
@@ -71,18 +91,30 @@ public class RegexAST { // TODO: Add support for NOT (~)
     private ASTNode root;
     private int index = 0;
 
+    /**
+     * @return True if this represents the empty word
+     */
     public boolean isEmptyWord() {
         return root == null;
     }
 
+    /**
+     * @return True if this represents an operation or quantification on sub-regex's
+     */
     public boolean isOperator() {
         return root != null && root.isOperator;
     }
 
+    /**
+     * @return True if this represents the wildcard character
+     */
     public boolean isWildcard() {
         return root != null && root.isWildcard;
     }
 
+    /**
+     * @return The character this represents, with \0 as a default value (if this is not a character)
+     */
     public char value() {
         if (root == null)
             return '\0';
@@ -90,6 +122,10 @@ public class RegexAST { // TODO: Add support for NOT (~)
         return root.value;
     }
 
+    /**
+     * @return The operator or quantifying character this represents,
+     * with \0 as a default value (if this is not an operation)
+     */
     public char operator() {
         if (root == null)
             return '\0';
@@ -97,14 +133,30 @@ public class RegexAST { // TODO: Add support for NOT (~)
         return root.operator;
     }
 
+    /**
+     * This is the method to call with quantifiers (which have only one argument)
+     * @return The left subtree of this AST, i.e. the first argument to this operator or quantifier
+     * The empty word is returned if this is not an operator or quantifier
+     */
     public RegexAST left() {
         return new RegexAST(root.left);
     }
 
+    /**
+     * This is not the method to call with quantifiers (which have only one argument)
+     * @return The right subtree of this AST, i.e. the second argument to this operator
+     * The empty word is returned if this is not an operator
+     */
     public RegexAST right() {
         return new RegexAST(root.right);
     }
 
+    /**
+     * Note that two RegexAST can represent the same regex while not being the same AST,
+     * for example (^ (^ a b) c) and (^ a (^ b c)) both represent abc
+     * @param that The RegexAST to be compared to this
+     * @return True if this and that are the same AST
+     */
     public boolean equals(Object that) {
         if (!(that instanceof RegexAST))
             return false;
@@ -119,6 +171,10 @@ public class RegexAST { // TODO: Add support for NOT (~)
         root = node;
     }
 
+    /**
+     * Constructs an Abstract Syntax Tree for the given regular expression
+     * @param regex A valid regular expression
+     */
     public RegexAST(String regex) {
         ASTNode current = null;
         regex = '(' + regex + ')';
@@ -299,6 +355,9 @@ public class RegexAST { // TODO: Add support for NOT (~)
         return result;
     }
 
+    /**
+     * @return A flattened representation of the syntax tree in the form (op left right?)
+     */
     public String toString() {
         if (root == null)
             return "emptyword";
