@@ -1,5 +1,13 @@
 import java.util.*;
 
+/**
+ * This class describes a Deterministic Finite Automaton for a given regular expression
+ *
+ * DFA is constructed by first creating a {@link NFA} and then constructing an equivalent deterministic automaton
+ * The DFA can then match a given string against the regular expression it was constructed with
+ *
+ * For supported ways of writing regular expressions, see {@link RegexAST}
+ */
 public class DFA {
     class Node {
         // If Node is an acceptState, these are what it matches (for use in Lexer)
@@ -24,6 +32,10 @@ public class DFA {
         Node() {}
     }
 
+    /**
+     * @param names A set of labels
+     * @return The elements of {@code names} separated by " | "
+     */
     public static String toName(Set<String> names) {
         StringBuilder name = new StringBuilder();
         names.forEach(n -> name.append(n).append(" | "));
@@ -35,14 +47,33 @@ public class DFA {
     Node startState;
     List<Node> acceptStates = new ArrayList<>();
 
+    /**
+     * Constructs a DFA that matches any of the given regular expressions
+     * where accepting states are labeled with given names
+     *
+     * The DFA is minimal except for its separation of accepting states with different labels
+     * @param names An array of the labels where {@code names[i]} corresponds to {@code regex[i]}
+     * @param regex An array of valid regular expressions to be matched
+     */
     public DFA(String[] names, String[] regex) {
         initFrom(NFA.makeNFA(names, regex));
     }
 
+    /**
+     * Constructs a minimal DFA that matches the given regular expression
+     * @param regex A valid regular expression to be matched
+     */
     public DFA(String regex) {
         initFrom(NFA.makeNFA(regex));
     }
 
+    /**
+     * Constructs a DFA that is equivalent to the given NFA
+     *
+     * The DFA is minimal except for its separation of accepting states with different labels
+     * if the accepting states are labeled
+     * @param nfa A {@link NFA} to be compiled
+     */
     public DFA(NFA nfa) {
         initFrom(nfa);
     }
@@ -374,6 +405,10 @@ public class DFA {
         return node;
     }
 
+    /**
+     * @param input A string to check against the regular expression(s) this DFA was constructed with
+     * @return True if {@code input} matches the regular expression represented by this DFA
+     */
     public boolean match(String input) {
         Node current = startState;
         for (int i = 0; i < input.length(); i++) {
@@ -389,7 +424,10 @@ public class DFA {
         return acceptStates.contains(current);
     }
 
-    // Output the graph in GraphViz
+    /**
+     * @return A GraphViz representation of this DFA with labeled edges for transitions
+     * (where eps, short for epsilon, is the label for the empty word)
+     */
     public String toString() {
         StringBuilder out = new StringBuilder("digraph G {\nahead [shape = plaintext, label = \"\"];\nahead-> a0;\n");
         int nextName = 0;

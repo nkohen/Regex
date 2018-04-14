@@ -154,7 +154,7 @@ public class RegexAST {
      * Note that two RegexAST can represent the same regex while not being the same AST,
      * for example (^ (^ a b) c) and (^ a (^ b c)) both represent abc
      * @param that The RegexAST to be compared to this
-     * @return True if this and that are the same AST
+     * @return True if {@code this} and {@code that} are the same AST
      */
     public boolean equals(Object that) {
         if (!(that instanceof RegexAST))

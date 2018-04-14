@@ -37,7 +37,7 @@ public class NFA {
     List<Node> acceptStates = new ArrayList<>();
 
     /**
-     * @param names An array of the labels where names[i] corresponds to regex[i]
+     * @param names An array of the labels where {@code names[i]} corresponds to {@code regex[i]}
      * @param regex An array of valid regular expressions to be matched
      * @return Constructs an NFA that matches any of the given regular expressions
      * where accepting states are labeled with given names
@@ -49,7 +49,7 @@ public class NFA {
     }
 
     /**
-     * @param names An array of the labels where names[i] corresponds to regex[i]
+     * @param names An array of the labels where {@code names[i]} corresponds to {@code regex[i]}
      * @param regex An array of {@link RegexAST}s to be matched
      * @return Constructs an NFA that matches any of the given regular expressions
      * where accepting states are labeled with given names
