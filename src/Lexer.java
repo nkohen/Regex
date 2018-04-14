@@ -1,19 +1,60 @@
 import java.util.*;
 
-// TODO: Add Unit tests
-public class Lexer extends DFA {
+/**
+ * This class describes a Lexical analyser which, given an array of regular expressions,
+ * can tokenize any input String by matching those tokens by using a Determinist Finite Automaton as in {@link DFA}
+ *
+ * For supported ways of writing regular expressions, see {@link RegexAST}
+ */
+public class Lexer extends DFA { // TODO: Add Unit tests
+    /**
+     * Matches a single digit, i.e. [0-9]
+     */
     public static final String DIGIT = "(0|1|2|3|4|5|6|7|8|9)";
+
+    /**
+     * Matches a single lowercase letter, i.e. [a-z]
+     */
     public static final String LOWER_CASE = "(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)";
+
+    /**
+     * Matches a single uppercase letter, i.e. [A-Z]
+     */
     public static final String UPPER_CASE = "(A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z)";
+
+    /**
+     * Matches a single uppercase or lowercase letter, i.e. [a-z]|[A-Z]
+     */
     public static final String LETTER = "(" + LOWER_CASE + "|" + UPPER_CASE + ")";
+
+    /**
+     * Matches a single whitespace character
+     */
     public static final String SINGLE_WHITESPACE = "( |\t|\n|\f|\r)";
+
+    /**
+     * Matches any number of consecutive whitespace characters
+     */
     public static final String OPTIONAL_WHITESPACE = SINGLE_WHITESPACE + "*";
+
+    /**
+     * Matches any positive (>= 1) number of consecutive whitespace characters
+     */
     public static final String WHITESPACE = SINGLE_WHITESPACE + "+";
 
+    /**
+     * This class describes a single matched token,
+     * storing both the token's value and which regex was matched
+     */
     public static class Token {
         String value;
         String type;
 
+        /**
+         * Constructs a Lexer token
+         * @param value The substring matched
+         * @param type The name/label of the regex that matched this token
+         */
         public Token(String value, String type) {
             this.value = value;
             this.type = type;
@@ -24,24 +65,53 @@ public class Lexer extends DFA {
         }
     }
 
+    /**
+     * Constructs a Lexer with the given regular expressions and their names
+     * @param names An array of the labels where {@code names[i]} corresponds to {@code tokenRegex[i]}
+     * @param tokenRegex An array of valid regular expressions to be matched
+     */
     public Lexer(String[] names, String[] tokenRegex) {
         super(names, tokenRegex);
         this.omitNames = new ArrayList<>();
         this.priority = null;
     }
 
+    /**
+     * Constructs a Lexer with the given regular expressions and their names which skips certain specified tokens
+     * @param names An array of the labels where {@code names[i]} corresponds to {@code tokenRegex[i]}
+     * @param tokenRegex An array of valid regular expressions to be matched
+     * @param omitNames An array of labels in {@code names} that should be skipped/omitted
+     */
     public Lexer(String[] names, String[] tokenRegex, String[] omitNames) {
         super(names, tokenRegex);
         this.omitNames = List.of(omitNames);
         this.priority = null;
     }
 
+    /**
+     * Constructs a Lexer with the given prioritized regular expressions and their names
+     * @param names An array of the labels where {@code names[i]} corresponds to {@code tokenRegex[i]}
+     * @param priority A map from labels in {@code names} to Integers to disambiguate when multiple tokens are matched
+     *                 higher numbers correspond to higher priorities and if a label is absent from the map it gets the
+     *                 default value 0
+     * @param tokenRegex An array of valid regular expressions to be matched
+     */
     public Lexer(String[] names, Map<String, Integer> priority, String[] tokenRegex) {
         super(names, tokenRegex);
         this.omitNames = new ArrayList<>();
         this.priority = priority;
     }
 
+    /**
+     * Constructs a Lexer with the given prioritized regular expressions and their names
+     * which skips certain specified tokens
+     * @param names An array of the labels where {@code names[i]} corresponds to {@code tokenRegex[i]}
+     * @param priority A map from labels in {@code names} to Integers to disambiguate when multiple tokens are matched
+     *                 higher numbers correspond to higher priorities and if a label is absent from the map it gets the
+     *                 default value 0
+     * @param tokenRegex An array of valid regular expressions to be matched
+     * @param omitNames An array of labels in {@code names} that should be skipped/omitted
+     */
     public Lexer(String[] names, Map<String, Integer> priority, String[] tokenRegex, String[] omitNames) {
         super(names, tokenRegex);
         this.omitNames = List.of(omitNames);
@@ -55,6 +125,12 @@ public class Lexer extends DFA {
     private Set<String> lastMatchNames;
     private Map<String, Integer> priority;
 
+    /**
+     * Initializes the Lexer with a String to tokenize
+     * Every call resets the Lexer to read from the beginning of the input
+     * @param input The input String to tokenize
+     * @return This Lexer for fluent calls
+     */
     public Lexer init(String input) {
         this.index = 0;
         this.input = input;
@@ -63,6 +139,21 @@ public class Lexer extends DFA {
         return this;
     }
 
+    /**
+     * Resets this Lexer on the current input String
+     * @return This Lexer for fluent calls
+     */
+    public Lexer reset() {
+        index = 0;
+        nextToken = null;
+        lastMatchNames = null;
+
+        return this;
+    }
+
+    /**
+     * @return The label of the last token matched (filtered for priority if applicable)
+     */
     public String lastMatchType() {
         if (priority != null) {
             return DFA.toName(highestPriority(lastMatchNames));
@@ -87,10 +178,16 @@ public class Lexer extends DFA {
         return highest;
     }
 
+    /**
+     * @return The next token matched and not skipped in the input String
+     */
     public Token nextToken() {
         return new Token(next(), lastMatchType());
     }
 
+    /**
+     * @return The next String matched and not skipped in the input String
+     */
     public String next() {
         String nextToken = null;
         boolean skip = true;
@@ -107,11 +204,16 @@ public class Lexer extends DFA {
         return nextToken;
     }
 
+    /**
+     * @return The next token matched in the input String (possibly an omitted type)
+     */
     public Token nextMatchedToken() {
         return new Token(nextMatch(), lastMatchType());
     }
 
-    // This does not omit
+    /**
+     * @return The next String matched in the input String (possibly an omitted type)
+     */
     public String nextMatch() {
         if (nextToken != null) {
             String temp = nextToken;
@@ -152,6 +254,9 @@ public class Lexer extends DFA {
         }
     }
 
+    /**
+     * @return True if the input String has any more non-omitted tokens to be matched
+     */
     public boolean hasNext() {
         if (nextToken != null)
             return true;
@@ -165,6 +270,9 @@ public class Lexer extends DFA {
         return true;
     }
 
+    /**
+     * @return True if the input String has any tokens left to be matched (includes tokens to be skipped)
+     */
     public boolean hasNextMatch() {
         if (nextToken != null)
             return true;
@@ -178,6 +286,10 @@ public class Lexer extends DFA {
         return true;
     }
 
+    /**
+     * @return The rest of the input that can be matched as an array of {@link Token}s
+     * The unmatched portion of the input is added as the last Token whose type is "UNMATCHED by Lexer"
+     */
     public Token[] tokenize() {
         List<Token> tokens = new ArrayList<>();
         while (hasNext()) {
@@ -190,6 +302,11 @@ public class Lexer extends DFA {
         return finalTokens;
     }
 
+    /**
+     * Note that a call to {@code Lexer::hasNext} or {@code Lexer::hasNextMatch} will cause this method to be missing
+     * the next token because that part of the input String has been seen
+     * @return The remaining unseen portion of the input String.
+     */
     public String remaining() {
         return input.substring(index);
     }
