@@ -1,12 +1,18 @@
 import java.util.*;
 
 /**
+ * <p>
  * This class describes a Deterministic Finite Automaton for a given regular expression
+ * </p>
  *
- * DFA is constructed by first creating a {@link NFA} and then constructing an equivalent deterministic automaton
- * The DFA can then match a given string against the regular expression it was constructed with
+ * <p>
+ * DFA is constructed by first creating a {@link NFA} and then constructing an equivalent deterministic automaton,
+ * the DFA can then match a given string against the regular expression it was constructed with
+ * </p>
  *
+ * <p>
  * For supported ways of writing regular expressions, see {@link RegexAST}
+ * </p>
  */
 public class DFA {
     class Node {
@@ -33,6 +39,7 @@ public class DFA {
     }
 
     /**
+     * Returns the elements of {@code names} separated by " | "
      * @param names A set of labels
      * @return The elements of {@code names} separated by " | "
      */
@@ -49,7 +56,7 @@ public class DFA {
 
     /**
      * Constructs a DFA that matches any of the given regular expressions
-     * where accepting states are labeled with given names
+     * where accepting states are labeled with given names<br>
      *
      * The DFA is minimal except for its separation of accepting states with different labels
      * @param names An array of the labels where {@code names[i]} corresponds to {@code regex[i]}
@@ -406,6 +413,7 @@ public class DFA {
     }
 
     /**
+     * Returns true if {@code input} is matched by this DFA
      * @param input A string to check against the regular expression(s) this DFA was constructed with
      * @return True if {@code input} matches the regular expression represented by this DFA
      */
@@ -425,6 +433,7 @@ public class DFA {
     }
 
     /**
+     * Returns a GraphViz representation of this DFA
      * @return A GraphViz representation of this DFA with labeled edges for transitions
      * (where eps, short for epsilon, is the label for the empty word)
      */

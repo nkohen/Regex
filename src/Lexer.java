@@ -1,10 +1,14 @@
 import java.util.*;
 
 /**
+ * <p>
  * This class describes a Lexical analyser which, given an array of regular expressions,
  * can tokenize any input String by matching those tokens by using a Determinist Finite Automaton as in {@link DFA}
+ * </p>
  *
+ * <p>
  * For supported ways of writing regular expressions, see {@link RegexAST}
+ * </p>
  */
 public class Lexer extends DFA { // TODO: Add Unit tests
     /**
@@ -38,7 +42,7 @@ public class Lexer extends DFA { // TODO: Add Unit tests
     public static final String OPTIONAL_WHITESPACE = SINGLE_WHITESPACE + "*";
 
     /**
-     * Matches any positive (>= 1) number of consecutive whitespace characters
+     * Matches any positive number (at least one) of consecutive whitespace characters
      */
     public static final String WHITESPACE = SINGLE_WHITESPACE + "+";
 
@@ -152,6 +156,7 @@ public class Lexer extends DFA { // TODO: Add Unit tests
     }
 
     /**
+     * Returns the label of the last token matched
      * @return The label of the last token matched (filtered for priority if applicable)
      */
     public String lastMatchType() {
@@ -179,6 +184,7 @@ public class Lexer extends DFA { // TODO: Add Unit tests
     }
 
     /**
+     * Returns the next token matched and not skipped
      * @return The next token matched and not skipped in the input String
      */
     public Token nextToken() {
@@ -186,6 +192,7 @@ public class Lexer extends DFA { // TODO: Add Unit tests
     }
 
     /**
+     * Returns the next String matched and not skipped
      * @return The next String matched and not skipped in the input String
      */
     public String next() {
@@ -205,6 +212,7 @@ public class Lexer extends DFA { // TODO: Add Unit tests
     }
 
     /**
+     * Returns the next token matched
      * @return The next token matched in the input String (possibly an omitted type)
      */
     public Token nextMatchedToken() {
@@ -212,6 +220,7 @@ public class Lexer extends DFA { // TODO: Add Unit tests
     }
 
     /**
+     * Returns the next String matched
      * @return The next String matched in the input String (possibly an omitted type)
      */
     public String nextMatch() {
@@ -255,6 +264,7 @@ public class Lexer extends DFA { // TODO: Add Unit tests
     }
 
     /**
+     * Returns true if the input has a next match
      * @return True if the input String has any more non-omitted tokens to be matched
      */
     public boolean hasNext() {
@@ -271,6 +281,7 @@ public class Lexer extends DFA { // TODO: Add Unit tests
     }
 
     /**
+     * Returns true if the input String has any tokens left
      * @return True if the input String has any tokens left to be matched (includes tokens to be skipped)
      */
     public boolean hasNextMatch() {
@@ -287,7 +298,8 @@ public class Lexer extends DFA { // TODO: Add Unit tests
     }
 
     /**
-     * @return The rest of the input that can be matched as an array of {@link Token}s
+     * Returns the remaining unread substring
+     * @return The rest of the input that can be matched as an array of {@link Token}s<br>
      * The unmatched portion of the input is added as the last Token whose type is "UNMATCHED by Lexer"
      */
     public Token[] tokenize() {
@@ -303,6 +315,7 @@ public class Lexer extends DFA { // TODO: Add Unit tests
     }
 
     /**
+     * Returns the remaining unseen portion of the input String <br>
      * Note that a call to {@code Lexer::hasNext} or {@code Lexer::hasNextMatch} will cause this method to be missing
      * the next token because that part of the input String has been seen
      * @return The remaining unseen portion of the input String.

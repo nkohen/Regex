@@ -1,16 +1,19 @@
 /**
+ * <p>
  * This class describes an abstract syntax tree for a given regular expression
+ * </p>
  *
- * Supported regex operations and (greedy) quantifiers: (where A and B are regular expressions, and x is any character)
- * A|B - A or B
- * AB - A followed by B
- * A* - 0 or more A's
- * A? - 0 or 1 A's
- * A+ - 1 or more A's
- * A{n} - exactly n A's
- * A{n,m} - n to m A's inclusive
- * \x - escaped x (e.g. \*, \\, \+, \{n,m}, \., etc.); escaping a character unnecissarily has no effect
- * . - wildcard character (matches any single character)
+ * Supported regex operations and (greedy) quantifiers:
+ * (where A and B are regular expressions, and x is any character) <br>
+ * A|B -- A or B <br>
+ * AB -- A followed by B <br>
+ * A* -- 0 or more A's <br>
+ * A? -- 0 or 1 A's <br>
+ * A+ -- 1 or more A's <br>
+ * A{n} -- exactly n A's <br>
+ * A{n,m} -- n to m A's inclusive <br>
+ * \x -- escaped x (e.g. \*, \\, \+, \{n,m}, \., etc.); escaping a character unnecissarily has no effect <br>
+ * . -- wildcard character (matches any single character)
  */
 public class RegexAST {
     // TODO: Add support for NOT (~), intersection (&), and ranges (a-z)
@@ -91,6 +94,7 @@ public class RegexAST {
     private int index = 0;
 
     /**
+     * Returns true if this represents the empty word
      * @return True if this represents the empty word
      */
     public boolean isEmptyWord() {
@@ -98,6 +102,7 @@ public class RegexAST {
     }
 
     /**
+     * Returns true if this represents an operation or quantification on sub-regex's
      * @return True if this represents an operation or quantification on sub-regex's
      */
     public boolean isOperator() {
@@ -105,6 +110,7 @@ public class RegexAST {
     }
 
     /**
+     * Returns true if this represents the wildcard character
      * @return True if this represents the wildcard character
      */
     public boolean isWildcard() {
@@ -112,6 +118,7 @@ public class RegexAST {
     }
 
     /**
+     * Returns the character this represents, with \0 as a default value (if this is not a character)
      * @return The character this represents, with \0 as a default value (if this is not a character)
      */
     public char value() {
@@ -122,6 +129,7 @@ public class RegexAST {
     }
 
     /**
+     * Returns the operator or quantifying character this represents
      * @return The operator or quantifying character this represents,
      * with \0 as a default value (if this is not an operation)
      */
@@ -133,6 +141,7 @@ public class RegexAST {
     }
 
     /**
+     * Returns the left subtree of this syntax tree<br>
      * This is the method to call with quantifiers (which have only one argument)
      * @return The left subtree of this AST, i.e. the first argument to this operator or quantifier
      * The empty word is returned if this is not an operator or quantifier
@@ -142,6 +151,7 @@ public class RegexAST {
     }
 
     /**
+     * Returns the right subtree of this syntax tree<br>
      * This is not the method to call with quantifiers (which have only one argument)
      * @return The right subtree of this AST, i.e. the second argument to this operator
      * The empty word is returned if this is not an operator
@@ -151,6 +161,7 @@ public class RegexAST {
     }
 
     /**
+     * Returns true if {@code this} and {@code that} are the same syntax trees<br>
      * Note that two RegexAST can represent the same regex while not being the same AST,
      * for example (^ (^ a b) c) and (^ a (^ b c)) both represent abc
      * @param that The RegexAST to be compared to this
@@ -355,6 +366,7 @@ public class RegexAST {
     }
 
     /**
+     * Returns a flattened representation of the syntax tree in the form (op left right?)
      * @return A flattened representation of the syntax tree in the form (op left right?)
      */
     public String toString() {

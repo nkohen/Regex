@@ -3,12 +3,18 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * <p>
  * This class describes a Non-deterministic Finite Automaton for a given regular expression
+ * </p>
  *
- * NFA does not currently support matching a String against a regex
- * If this is your intent, see {@link DFA} which turns an NFA into an equivalent Deterministic Finite Automaton
+ * <p>
+ * NFA does not currently support matching a String against a regex,
+ * if this is your intent, see {@link DFA} which turns an NFA into an equivalent Deterministic Finite Automaton
+ * </p>
  *
+ * <p>
  * For supported ways of writing regular expressions, see {@link RegexAST}
+ * </p>
  */
 public class NFA {
     /**
@@ -37,10 +43,11 @@ public class NFA {
     List<Node> acceptStates = new ArrayList<>();
 
     /**
+     * Constructs an NFA that matches any of the given regular expressions
+     * where accepting states are labeled with given names
      * @param names An array of the labels where {@code names[i]} corresponds to {@code regex[i]}
      * @param regex An array of valid regular expressions to be matched
-     * @return Constructs an NFA that matches any of the given regular expressions
-     * where accepting states are labeled with given names
+     * @return The constructed NFA
      */
     public static NFA makeNFA(String[] names, String[] regex) {
         List<RegexAST> trees = Stream.of(regex).map(RegexAST::new).collect(Collectors.toList());
@@ -49,10 +56,11 @@ public class NFA {
     }
 
     /**
+     * Constructs an NFA that matches any of the given regular expressions
+     * where accepting states are labeled with given names
      * @param names An array of the labels where {@code names[i]} corresponds to {@code regex[i]}
      * @param regex An array of {@link RegexAST}s to be matched
-     * @return Constructs an NFA that matches any of the given regular expressions
-     * where accepting states are labeled with given names
+     * @return The constructed NFA
      */
     public static NFA makeNFA(String[] names, RegexAST[] regex) {
         List<NFA> nfas = Stream.of(regex).map(NFA::makeNFA).collect(Collectors.toList());
@@ -76,16 +84,18 @@ public class NFA {
     }
 
     /**
+     * Constructs an NFA that matches the given regular expression
      * @param regex The valid regular expression to be matched
-     * @return Constructs an NFA that matches the given regular expression
+     * @return The constructed NFA
      */
     public static NFA makeNFA(String regex) {
         return makeNFA(new RegexAST(regex));
     }
 
     /**
+     * Constructs an NFA that matches the given regular expression
      * @param regex A {@link RegexAST} to be matched
-     * @return Constructs an NFA that matches the given regular expression
+     * @return The constructed NFA
      */
     public static NFA makeNFA(RegexAST regex) {
         NFA nfa = new NFA();
@@ -149,6 +159,7 @@ public class NFA {
     }
 
     /**
+     * Returns A GraphViz representation of this NFA
      * @return A GraphViz representation of this NFA with labeled edges for transitions
      * (where eps, short for epsilon, is the label for the empty word)
      */
